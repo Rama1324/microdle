@@ -1,0 +1,31 @@
+{
+  "name": "microdle",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Adivina la micro del día de Santiago a partir de su trazado.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "data": "tsx scripts/build-data.ts",
+    "assets": "tsx scripts/build-assets.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4"
+  },
+  "devDependencies": {
+    "@turf/bbox": "^7.1.0",
+    "@turf/boolean-point-in-polygon": "^7.1.0",
+    "@turf/helpers": "^7.1.0",
+    "@turf/simplify": "^7.1.0",
+    "@types/geojson": "^7946.0.16",
+    "@types/leaflet": "^1.9.12",
+    "@types/node": "^22.10.0",
+    "sharp": "^0.33.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vite": "^6.0.0"
+  }
+}
