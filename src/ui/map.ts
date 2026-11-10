@@ -96,11 +96,13 @@ export class MapView {
 
   private setTiles(level: number) {
     const wantBase = level >= 1;
-    const key = wantBase ? `${this.theme}:${level >= 2}` : '';
+    // El mapa base siempre es claro (Positron), también en modo oscuro: el estilo
+    // dark_* resultaba demasiado oscuro para leer calles.
+    const key = wantBase ? `light:${level >= 2}` : '';
     if (key !== this.baseKey) {
       const old = this.base;
       this.base = wantBase
-        ? L.tileLayer(tileUrl(this.theme, level >= 2), { maxZoom: 19, className: 'tiles-base' }).addTo(this.map)
+        ? L.tileLayer(tileUrl('light', level >= 2), { maxZoom: 19, className: 'tiles-base' }).addTo(this.map)
         : null;
       // Quitamos la capa anterior cuando la nueva ya cargó, para no "parpadear"
       if (old) {

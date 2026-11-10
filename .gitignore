@@ -3,3 +3,6 @@ dist
 data/gtfs
 *.zip
 .DS_Store
+.env
+.env.local
+.env.*.local

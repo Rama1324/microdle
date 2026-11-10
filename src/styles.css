@@ -303,6 +303,18 @@ kbd {
 .route-final {
   stroke: var(--route-final);
 }
+/* Con mapa base (siempre claro) la línea va oscura, también en modo oscuro */
+.leaflet-container:not(.no-basemap) {
+  --route: #1d2b2a;
+  --route-casing: #ffffff;
+  --route-final: #3f8a39;
+  background: #f2f2ef;
+}
+.leaflet-container:not(.no-basemap) .terminal-icon span {
+  background: #1d2b2a;
+  color: #ffffff;
+  border-color: #ffffff;
+}
 .guess-line {
   stroke: var(--gray);
   stroke-dasharray: 2 7;
