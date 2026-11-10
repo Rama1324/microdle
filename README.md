@@ -92,6 +92,13 @@ Desde 2026, CARTO Basemaps exige una key. Sin ella, los tiles aparecen con la ma
 
 El juego funciona sin key: el paso 0 (forma pura) no usa mapa base. Pero desde el primer fallo se verá la marca de agua.
 
+### Temas del mapa
+
+- **Claro:** tiles raster Positron (`light_nolabels`, y `light_all` desde el fallo 2).
+- **Oscuro:** estilo vectorial Dark Matter con MapLibre GL. Se recolorean las etiquetas para que se lean bien: nombres de calles en amarillo y lugares en blanco, con halo negro. MapLibre (~220 KB gzip) se descarga solo en tema oscuro y recién cuando aparece el mapa. Si el navegador no tiene WebGL, se usa el raster `dark_*` como respaldo.
+
+En Vercel, define `VITE_CARTO_KEY` como tipo **Config**, no Secret: las variables `VITE_*` se incrustan en el JavaScript público, y Vercel no deja marcarlas como secretas.
+
 ## 4. Desarrollo local
 
 ```bash
