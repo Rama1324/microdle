@@ -1,6 +1,7 @@
 import { daysBetween, santiagoISO } from './time';
-import { readJSON, writeJSON } from './store';
-import type { GameId } from './config';
+import { readValid, writeJSON } from './store';
+import { GAMES, type GameId } from './config';
+import { arr, obj, oneOf, record } from './schema';
 
 /**
  * Racha global del hub: días (calendario de Santiago) en que se terminó
@@ -13,14 +14,22 @@ interface Activity {
   days: Record<string, GameId[]>;
 }
 
+const ACTIVITY_SCHEMA = obj({
+  days: record(arr(oneOf(...Object.keys(GAMES))), (k) => /^\d{4}-\d{2}-\d{2}$/.test(k)),
+});
+
 function load(): Activity {
-  const a = readJSON<Activity>(KEY, { days: {} });
-  return a && typeof a.days === 'object' ? a : { days: {} };
+  return readValid<Activity>(KEY, ACTIVITY_SCHEMA, { days: {} });
 }
 
-export function recordDailyPlayed(game: GameId, now = new Date()) {
+/**
+ * Registra que se terminó el diario de `game` correspondiente a la fecha `puzzleDate`
+ * (la del puzzle, no la del momento de terminar: una partida empezada a las 23:59
+ * y terminada a las 00:01 cuenta para el día en que empezó).
+ */
+export function recordDailyPlayed(game: GameId, puzzleDate: string = santiagoISO()) {
   const a = load();
-  const today = santiagoISO(now);
+  const today = puzzleDate;
   const list = a.days[today] ?? [];
   if (!list.includes(game)) list.push(game);
   a.days[today] = list;

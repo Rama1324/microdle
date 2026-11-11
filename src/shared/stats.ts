@@ -1,4 +1,17 @@
 import type { Store } from './store';
+import { arr, int, nullable, num, obj, optional } from './schema';
+
+/** Esquema de las stats guardadas (compatible con el formato anterior de Microdle). */
+export const STATS_SCHEMA = obj({
+  played: int(0),
+  wins: int(0),
+  currentStreak: int(0),
+  maxStreak: int(0),
+  dist: arr(int(0)),
+  lastWinDay: nullable(int()),
+  lastRecordedDay: nullable(int()),
+  totalScore: optional(num),
+});
 
 /**
  * Estadísticas diarias genéricas. La forma es compatible con la que Microdle
@@ -38,7 +51,7 @@ const empty = (buckets: number): Stats => ({
 });
 
 export function getStats(cfg: StatsConfig, today: number): Stats {
-  const s = { ...empty(cfg.buckets), ...cfg.store.load<Partial<Stats>>(cfg.key ?? 'stats', {}) };
+  const s = { ...empty(cfg.buckets), ...cfg.store.loadValid<Partial<Stats>>(cfg.key ?? 'stats', STATS_SCHEMA, {}) };
   if (!Array.isArray(s.dist)) s.dist = Array(cfg.buckets).fill(0);
   while (s.dist.length < cfg.buckets) s.dist.push(0);
   // Racha visible: si se saltó un día, es 0 (el máximo se conserva)

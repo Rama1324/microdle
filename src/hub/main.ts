@@ -37,7 +37,17 @@ $('hub-streak').innerHTML =
 /** Juegos ya publicados (los demás se muestran como "Próximamente") */
 const LIVE: GameId[] = ['micro'];
 
+/** Estado del día de un juego. Si algo falla, la tarjeta igual se muestra (sin estado). */
 function statusFor(id: GameId): string {
+  try {
+    return statusForUnsafe(id);
+  } catch (e) {
+    console.warn(`[la-once] No se pudo leer el estado de ${id}`, e);
+    return '';
+  }
+}
+
+function statusForUnsafe(id: GameId): string {
   if (!LIVE.includes(id)) return '<span class="card-status soon">Próximamente</span>';
   const g = GAMES[id];
   const n = puzzleNumber(dayIndex(g.epoch));
