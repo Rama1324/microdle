@@ -2,7 +2,8 @@
 :root {
   --green: #6aaa64;
   --yellow: #c9b458;
-  --gray: #787c7e;
+  /* #787c7e daba 4.46:1 con --on-color (falla AA); #7b7f81 da 4.65:1 */
+  --gray: #7b7f81;
   /* Texto sobre celdas de color: oscuro para cumplir AA (≥4.5:1 sobre los tres colores) */
   --on-color: #101212;
 
@@ -10,7 +11,8 @@
   --surface: #ffffff;
   --text: #1a1c1c;
   --muted: #565a5c;
-  --border: #d3d6d6;
+  --border: #d3d6d6; /* separadores decorativos */
+  --line: #868a8b; /* bordes de controles: ≥3:1 (WCAG 1.4.11) */
   --empty: #ebecea;
   --map-bg: #eef0ec;
   --map-dot: #d5d9d2;
@@ -33,6 +35,7 @@
   --text: #ececeb;
   --muted: #a7acad;
   --border: #3a3f3f;
+  --line: #686e70;
   --empty: #252929;
   --map-bg: #171a1a;
   --map-dot: #2a2f2f;
@@ -222,7 +225,7 @@ kbd {
   height: 48px;
   padding: 0 18px;
   border-radius: var(--radius);
-  border: 2px solid var(--border);
+  border: 2px solid var(--line);
   background: var(--surface);
   font-weight: 700;
   cursor: pointer;
@@ -515,4 +518,10 @@ dialog[open] {
     animation-delay: 0ms !important;
     transition-duration: 1ms !important;
   }
+}
+
+.foot a {
+  color: var(--text);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
 }
