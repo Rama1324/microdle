@@ -2,14 +2,14 @@ import '../shared/base.css';
 import './micro.css';
 import type { Feedback, GameStatus, Mode, RouteData, RoutesFile } from './types';
 import { MAX_GUESSES } from './types';
-import { answerForDay, microDayIndex, randomAnswer } from './game/daily';
+import { answerForDay, MICRO_EPOCH, microDayIndex, randomAnswer } from './game/daily';
 import { computeFeedback, zonaLabel } from './game/feedback';
 import { buildShareText } from './game/share';
 import { MapView } from './ui/map';
 import { announceText, renderGrid, ROW_REVEAL_MS } from './ui/grid';
 import { GuessInput, normalizeId } from './ui/input';
-import { loadDaily, loadSettings, microStore, MICRO_STATS, saveSettings, type DailySave, type PracticeSave } from './state';
-import { formatCountdown, msUntilNextDay, puzzleNumber } from '../shared/time';
+import { loadDaily, loadPractice, loadSavedDaily, loadSettings, microStore, MICRO_STATS, saveSettings, type DailySave, type PracticeSave } from './state';
+import { dateForDay, formatCountdown, msUntilNextDay, puzzleNumber } from '../shared/time';
 import { shareResult } from '../shared/share';
 import { getStats, recordResult } from '../shared/stats';
 import { recordDailyPlayed } from '../shared/activity';
@@ -21,9 +21,22 @@ import { icons, logoSvg } from '../shared/ui/icons';
 
 // ---------- estado ----------
 const settings = loadSettings();
-const today = microDayIndex();
+/**
+ * Día del puzzle de ESTA sesión. Se fija al cargar y no cambia aunque pase la
+ * medianoche: la partida empezada se termina con la respuesta de su día.
+ * Si al abrir hay una partida de ayer a medio jugar, se retoma (salvo que el
+ * jugador haya elegido ir a la de hoy con ?hoy).
+ */
+const params = new URLSearchParams(location.search);
+const wantsToday = params.has('hoy');
+if (wantsToday) history.replaceState(null, '', location.pathname);
+const currentDay = microDayIndex();
+const saved = loadSavedDaily();
+const resumeYesterday =
+  !wantsToday && !!saved && saved.day === currentDay - 1 && saved.status === 'playing' && saved.guesses.length > 0;
+const today = resumeYesterday ? saved!.day : currentDay;
 let daily: DailySave = loadDaily(today);
-let practice: PracticeSave | null = microStore.load<PracticeSave | null>('practice', null);
+let practice: PracticeSave | null = loadPractice();
 let mode: Mode = 'daily';
 let busy = false;
 
@@ -146,6 +159,7 @@ function render(opts: { animateRow?: number; animateReveal?: boolean } = {}) {
   guessInput.setExcluded(guesses);
   guessInput.setDisabled(finished || busy);
   $('guess-form').hidden = finished;
+  document.body.classList.toggle('has-answer-bar', !finished);
 
   // Resultado
   const res = $('result');
@@ -225,7 +239,7 @@ function onGuess(raw: string) {
     if (status !== 'playing') {
       if (mode === 'daily') {
         recordResult(MICRO_STATS, today, { won, bucket: won ? guesses.length - 1 : null, score: won ? guesses.length : undefined });
-        recordDailyPlayed('micro');
+        recordDailyPlayed('micro', dateForDay(MICRO_EPOCH, today));
       }
       render({ animateReveal: true });
       if (!won) toast(`Era la ${cur.answer.id}`, 2600);
@@ -303,10 +317,21 @@ function showStats() {
 }
 
 // ---------- reloj ----------
+/** Hay un puzzle más nuevo que el de esta sesión (pasó la medianoche o se retomó el de ayer). */
+const newDayAvailable = () => microDayIndex() !== today;
+
+/** Aviso no intrusivo: nunca se recarga sola la página. */
+function showNewDayNotice() {
+  const el = $('new-day');
+  if (!el.hidden) return;
+  el.hidden = false;
+  announce('Ya hay micro nueva');
+}
+
 const tick = startCountdown(
-  () => formatCountdown(msUntilNextDay()),
-  () => microDayIndex() !== today && !busy,
-  () => location.reload(),
+  () => (newDayAvailable() ? '00:00:00' : formatCountdown(msUntilNextDay())),
+  newDayAvailable,
+  showNewDayNotice,
 );
 
 // ---------- eventos UI ----------
@@ -345,6 +370,18 @@ showG.addEventListener('change', () => {
 
 window.addEventListener('resize', () => mapView.invalidate());
 
+// Teclado virtual: con visualViewport sabemos cuánto tapa el teclado (iOS no
+// achica el layout) y subimos la barra de respuesta esa distancia.
+function updateKeyboardOffset() {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  const kb = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+  document.documentElement.style.setProperty('--kb', `${kb}px`);
+}
+window.visualViewport?.addEventListener('resize', updateKeyboardOffset);
+window.visualViewport?.addEventListener('scroll', updateKeyboardOffset);
+updateKeyboardOffset();
+
 // ---------- arranque ----------
 async function init() {
   try {
@@ -367,6 +404,7 @@ async function init() {
   $('data-version').textContent = `Datos: ${data.gtfs}. Generado el ${data.version}.`;
   $('map-loading').remove();
   render();
+  if (resumeYesterday || microDayIndex() !== today) showNewDayNotice();
   if (!settings.seenHelp) openDialog('dlg-help');
   else guessInput.focus();
 }

@@ -2,7 +2,7 @@
 <html lang="es-CL">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
     <title>Microdle — adivina la micro del día · %SITE_NAME%</title>
     <meta name="description" content="Un juego diario: adivina el recorrido de micro de Santiago a partir de su trazado en el mapa. 6 intentos, una micro nueva cada día." />
     <meta name="theme-color" content="#f7f7f5" media="(prefers-color-scheme: light)" />
@@ -33,14 +33,12 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link rel="preload" href="/fonts/chivo-latin-wght.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preconnect" href="https://basemaps.cartocdn.com" crossorigin />
 
     <!-- theme-script -->
   </head>
-  <body>
+  <body class="has-answer-bar">
     <a class="skip" href="#guess-input">Saltar al campo de respuesta</a>
 
     <header class="top">
@@ -61,6 +59,8 @@
         <button type="button" role="tab" id="tab-practice" aria-selected="false" aria-controls="game">Práctica</button>
       </div>
     </nav>
+
+    <div id="new-day" class="new-day" role="status" hidden>Ya hay micro nueva — <a href="?hoy">jugar</a></div>
 
     <main class="layout" id="game">
       <section class="map-wrap" aria-label="Mapa del recorrido">
