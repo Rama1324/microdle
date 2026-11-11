@@ -78,11 +78,11 @@ a.card-link:hover {
 }
 .card-tag {
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.875rem; /* 14px: mínimo para texto */
 }
 .card-status {
   margin-top: 6px;
-  font-size: 0.8rem;
+  font-size: 0.75rem; /* 12px: solo metadatos */
   font-weight: 700;
 }
 .card-status.done {
