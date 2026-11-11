@@ -17,6 +17,11 @@ export interface RouteData {
   zona: string;
   /** false = servicio corto/nocturno/expreso/variante: válido como intento, nunca respuesta */
   elegible: boolean;
+  /**
+   * true = el recorrido ya no está en el GTFS vigente, pero se conserva porque es
+   * la respuesta de un día ya publicado (su shape histórico no puede cambiar).
+   */
+  historico?: boolean;
 }
 
 export interface RoutesFile {

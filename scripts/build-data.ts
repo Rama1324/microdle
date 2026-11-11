@@ -16,9 +16,12 @@ import bbox from '@turf/bbox';
 import { booleanPointInPolygon } from '@turf/boolean-point-in-polygon';
 import { lineString, point } from '@turf/helpers';
 import type { Feature, MultiPolygon, Polygon } from 'geojson';
-import { encodePolyline } from '../src/game/polyline';
-import { haversineKm, lineCentroid, lineLengthKm } from '../src/game/geo';
-import type { LatLng, RouteData, RoutesFile } from '../src/types';
+import { encodePolyline } from '../src/micro/game/polyline';
+import { haversineKm, lineCentroid, lineLengthKm } from '../src/micro/game/geo';
+import type { LatLng, RouteData, RoutesFile } from '../src/micro/types';
+import type { ScheduleFile } from '../src/shared/schedule';
+import { microDayIndex } from '../src/micro/game/daily';
+import { historicRoutes } from '../src/micro/game/historic';
 
 // ---------- argumentos ----------
 function arg(name: string, def: string): string {
@@ -27,7 +30,8 @@ function arg(name: string, def: string): string {
 }
 const GTFS_DIR = resolve(arg('gtfs', 'data/gtfs'));
 const COMUNAS = resolve(arg('comunas', 'data/comunas-rm.geojson'));
-const OUT = resolve(arg('out', 'public/routes.json'));
+const OUT = resolve(arg('out', 'public/micro/routes.json'));
+const SCHEDULE = resolve(arg('schedule', 'public/micro/schedule.json'));
 const TOLERANCE = Number(arg('tolerance', '0.0005'));
 /** Metros entre muestras para detectar comunas */
 const COMUNA_STEP_M = 100;
@@ -284,6 +288,15 @@ async function main() {
   const seen = new Set<string>();
   const routesOut = out.filter((r) => (seen.has(r.id) ? false : (seen.add(r.id), true)));
 
+  // 7. Recorridos históricos: si un recorrido que es respuesta de un día ya congelado
+  //    desapareció del GTFS, se conserva tal como estaba (mismo shape) para esos días.
+  const historicos = keepHistoricRoutes(routesOut);
+  if (historicos.length) {
+    routesOut.push(...historicos);
+    routesOut.sort((a, b) => a.id.localeCompare(b.id, 'es', { numeric: true }));
+    console.log(`  ${historicos.length} recorrido(s) histórico(s) conservado(s): ${historicos.map((r) => r.id).join(', ')}`);
+  }
+
   const file: RoutesFile = {
     version: new Date().toISOString().slice(0, 10),
     gtfs: gtfsLabel,
@@ -298,6 +311,18 @@ async function main() {
   console.log(`  ${routesOut.length} recorridos exportados (${eleg} elegibles como respuesta)`);
   if (sinComuna.length) console.warn(`  ⚠ sin comunas detectadas: ${sinComuna.join(', ')}`);
   console.log(`  → ${OUT} (${(json.length / 1024).toFixed(0)} KB) en ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+}
+
+/**
+ * Devuelve los recorridos del routes.json anterior que son respuesta de algún día
+ * congelado del schedule y ya no vienen en el GTFS nuevo (marcados historico: true).
+ */
+function keepHistoricRoutes(current: RouteData[]): RouteData[] {
+  if (!existsSync(OUT) || !existsSync(SCHEDULE)) return [];
+  const prev: RoutesFile = JSON.parse(readFileSync(OUT, 'utf8'));
+  const sched: ScheduleFile = JSON.parse(readFileSync(SCHEDULE, 'utf8'));
+  // Los históricos que ya estaban en el archivo anterior también se conservan
+  return historicRoutes(prev.routes, current, sched, microDayIndex());
 }
 
 function round(n: number, d: number) {

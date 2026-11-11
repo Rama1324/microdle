@@ -1,52 +1,41 @@
-import './styles.css';
+import '../shared/base.css';
+import './micro.css';
 import type { Feedback, GameStatus, Mode, RouteData, RoutesFile } from './types';
 import { MAX_GUESSES } from './types';
-import { answerForDay, dayIndex, formatCountdown, msUntilNextDay, puzzleNumber, randomAnswer } from './game/daily';
+import { answerForDay, microDayIndex, randomAnswer } from './game/daily';
 import { computeFeedback, zonaLabel } from './game/feedback';
-import { buildShareText, shareResult } from './game/share';
-import { load, save } from './game/storage';
-import { getStats, recordResult } from './game/stats';
+import { buildShareText } from './game/share';
 import { MapView } from './ui/map';
 import { announceText, renderGrid, ROW_REVEAL_MS } from './ui/grid';
 import { GuessInput, normalizeId } from './ui/input';
-import { openDialog, renderStats, setupDialogs } from './ui/modals';
-import { icons, logoSvg } from './ui/icons';
+import { loadDaily, loadSettings, microStore, MICRO_STATS, saveSettings, type DailySave, type PracticeSave } from './state';
+import { formatCountdown, msUntilNextDay, puzzleNumber } from '../shared/time';
+import { shareResult } from '../shared/share';
+import { getStats, recordResult } from '../shared/stats';
+import { recordDailyPlayed } from '../shared/activity';
+import { bindThemeRadios, initTheme, onThemeChange, effectiveTheme } from '../shared/theme';
+import type { ScheduleFile } from '../shared/schedule';
+import { openDialog, renderStats, setupDialogs } from '../shared/ui/dialogs';
+import { announce, startCountdown, toast } from '../shared/ui/toast';
+import { icons, logoSvg } from '../shared/ui/icons';
 
 // ---------- estado ----------
-type Theme = 'auto' | 'light' | 'dark';
-interface Settings {
-  theme: Theme;
-  seenHelp: boolean;
-  showGuesses: boolean;
-}
-interface DailySave {
-  day: number;
-  guesses: string[];
-  status: GameStatus;
-}
-interface PracticeSave {
-  /** id de la respuesta, ofuscado */
-  a: string;
-  guesses: string[];
-  status: GameStatus;
-}
-
-const settings: Settings = { theme: 'auto', seenHelp: false, showGuesses: true, ...load<Partial<Settings>>('settings', {}) };
-const today = dayIndex();
-let daily: DailySave = load<DailySave | null>('daily', null) ?? { day: today, guesses: [], status: 'playing' };
-if (daily.day !== today) daily = { day: today, guesses: [], status: 'playing' };
-let practice: PracticeSave | null = load<PracticeSave | null>('practice', null);
+const settings = loadSettings();
+const today = microDayIndex();
+let daily: DailySave = loadDaily(today);
+let practice: PracticeSave | null = microStore.load<PracticeSave | null>('practice', null);
 let mode: Mode = 'daily';
 let busy = false;
 
 let data: RoutesFile;
 const byId = new Map<string, RouteData>();
 let dailyAnswer: RouteData;
+let schedule: ScheduleFile | null = null;
 
 const hide = (id: string) => btoa(unescape(encodeURIComponent([...id].reverse().join('') + '|μ')));
 const unhide = (s: string) => {
   try {
-    return [...decodeURIComponent(escape(atob(s))).replace(/\|μ$/, '')].reverse().join('');
+    return [...decodeURIComponent(escape(atob(s))).replace(/|μ$/, '')].reverse().join('');
   } catch {
     return '';
   }
@@ -57,24 +46,18 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getEleme
 const mapView = new MapView($('map'));
 const guessInput = new GuessInput($<HTMLFormElement>('guess-form'), onGuess);
 
+$('btn-home').innerHTML = icons.home;
 $('btn-help').innerHTML = icons.help;
 $('btn-stats').innerHTML = icons.stats;
 $('btn-settings').innerHTML = icons.settings;
 $('brand-logo').innerHTML = logoSvg(30);
 setupDialogs();
 
-// ---------- tema ----------
-const mql = window.matchMedia('(prefers-color-scheme: dark)');
-function effectiveTheme(): 'light' | 'dark' {
-  return settings.theme === 'auto' ? (mql.matches ? 'dark' : 'light') : settings.theme;
-}
-function applyTheme() {
-  const t = effectiveTheme();
-  document.documentElement.dataset.theme = t;
-  mapView.setTheme(t);
-}
-mql.addEventListener?.('change', () => settings.theme === 'auto' && applyTheme());
-applyTheme();
+// ---------- tema (compartido en todo el hub) ----------
+onThemeChange((t) => mapView.setTheme(t));
+initTheme();
+mapView.setTheme(effectiveTheme());
+bindThemeRadios();
 
 // ---------- helpers ----------
 function current() {
@@ -90,25 +73,10 @@ function feedbackFor(guesses: string[], answer: RouteData): Feedback[] {
     .map((r) => computeFeedback(r, answer));
 }
 
-let toastTimer = 0;
-function toast(msg: string, ms = 1800) {
-  const t = $('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = window.setTimeout(() => t.classList.remove('show'), ms);
-}
-
-function announce(msg: string) {
-  const el = $('sr-live');
-  el.textContent = '';
-  setTimeout(() => (el.textContent = msg), 50);
-}
-
 function persist() {
-  save('daily', daily);
-  if (practice) save('practice', practice);
-  save('settings', settings);
+  microStore.save('daily', daily);
+  if (practice) microStore.save('practice', practice);
+  saveSettings(settings);
 }
 
 // ---------- render ----------
@@ -255,7 +223,10 @@ function onGuess(raw: string) {
     busy = false;
     announce(announceText(fb));
     if (status !== 'playing') {
-      if (mode === 'daily') recordResult(today, won, guesses.length);
+      if (mode === 'daily') {
+        recordResult(MICRO_STATS, today, { won, bucket: won ? guesses.length - 1 : null, score: won ? guesses.length : undefined });
+        recordDailyPlayed('micro');
+      }
       render({ animateReveal: true });
       if (!won) toast(`Era la ${cur.answer.id}`, 2600);
       if (mode === 'daily') setTimeout(() => showStats(), 2600);
@@ -296,12 +267,25 @@ async function doShare() {
 }
 
 function showStats() {
-  const s = getStats(today);
+  const s = getStats(MICRO_STATS, today);
   const body = $('stats-body');
   const dailyDone = daily.status !== 'playing';
-  renderStats(body, s, {
-    highlight: daily.status === 'won' ? daily.guesses.length - 1 : null,
-    finished: dailyDone,
+  const pct = s.played ? Math.round((s.wins / s.played) * 100) : 0;
+  renderStats(body, {
+    numbers: [
+      [s.played, 'Jugadas'],
+      [`${pct}%`, 'Victorias'],
+      [s.currentStreak, 'Racha actual'],
+      [s.maxStreak, 'Racha máxima'],
+    ],
+    dist: {
+      title: 'Distribución de intentos',
+      labels: s.dist.map((_, i) => String(i + 1)),
+      values: s.dist,
+      highlight: daily.status === 'won' ? daily.guesses.length - 1 : null,
+      aria: (n, l) => `${n} ${n === 1 ? 'victoria' : 'victorias'} en ${l} ${l === '1' ? 'intento' : 'intentos'}`,
+    },
+    footer: dailyDone ? { countdown: true, share: true } : { note: 'Termina la micro de hoy para compartir tu resultado.' },
   });
   body.querySelector('[data-share]')?.addEventListener('click', async () => {
     const text = buildShareText({
@@ -319,16 +303,11 @@ function showStats() {
 }
 
 // ---------- reloj ----------
-function tick() {
-  const ms = msUntilNextDay();
-  const txt = formatCountdown(ms);
-  document.querySelectorAll('[data-countdown]').forEach((el) => (el.textContent = txt));
-  if (dayIndex() !== today && !busy) {
-    // Cambió el día en Chile: nueva micro.
-    location.reload();
-  }
-}
-setInterval(tick, 1000);
+const tick = startCountdown(
+  () => formatCountdown(msUntilNextDay()),
+  () => microDayIndex() !== today && !busy,
+  () => location.reload(),
+);
 
 // ---------- eventos UI ----------
 $('btn-help').addEventListener('click', () => openDialog('dlg-help'));
@@ -356,14 +335,6 @@ $('tab-practice').addEventListener('click', () => setMode('practice'));
 $('tab-daily').addEventListener('keydown', (e) => e.key === 'ArrowRight' && ($('tab-practice').focus(), setMode('practice')));
 $('tab-practice').addEventListener('keydown', (e) => e.key === 'ArrowLeft' && ($('tab-daily').focus(), setMode('daily')));
 
-document.querySelectorAll<HTMLInputElement>('input[name=theme]').forEach((r) => {
-  r.checked = r.value === settings.theme;
-  r.addEventListener('change', () => {
-    settings.theme = r.value as Theme;
-    persist();
-    applyTheme();
-  });
-});
 const showG = $<HTMLInputElement>('opt-show-guesses');
 showG.checked = settings.showGuesses;
 showG.addEventListener('change', () => {
@@ -377,16 +348,20 @@ window.addEventListener('resize', () => mapView.invalidate());
 // ---------- arranque ----------
 async function init() {
   try {
-    const res = await fetch('/routes.json', { cache: 'no-cache' });
+    const [res, sch] = await Promise.all([
+      fetch('/micro/routes.json', { cache: 'no-cache' }),
+      fetch('/micro/schedule.json', { cache: 'no-cache' }).catch(() => null),
+    ]);
     if (!res.ok) throw new Error(String(res.status));
     data = await res.json();
+    schedule = sch && sch.ok ? await sch.json() : null;
   } catch {
     $('map-loading').textContent = 'No se pudieron cargar los recorridos. Revisa tu conexión y recarga.';
     return;
   }
   for (const r of data.routes) byId.set(normalizeId(r.id), r);
   guessInput.setRoutes(data.routes);
-  dailyAnswer = answerForDay(data.routes, today);
+  dailyAnswer = answerForDay(data.routes, schedule, today);
   // Si el GTFS cambió y algún intento guardado ya no existe, se ignora sin romper el juego.
   $('daily-num').textContent = `#${puzzleNumber(today)}`;
   $('data-version').textContent = `Datos: ${data.gtfs}. Generado el ${data.version}.`;

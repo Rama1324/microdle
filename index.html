@@ -3,31 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Microdle — adivina la micro del día</title>
-    <meta name="description" content="Un juego diario: adivina el recorrido de micro de Santiago a partir de su trazado en el mapa. 6 intentos, una micro nueva cada día." />
+    <title>%SITE_NAME% — juegos diarios chilenos</title>
+    <meta name="description" content="%SITE_DESCRIPTION%" />
     <meta name="theme-color" content="#f7f7f5" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#121414" media="(prefers-color-scheme: dark)" />
-    <link rel="canonical" href="https://microdle.cl/" />
+    <link rel="canonical" href="%SITE_URL%/" />
 
-    <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="es_CL" />
-    <meta property="og:site_name" content="Microdle" />
-    <meta property="og:title" content="Microdle — adivina la micro del día" />
-    <meta property="og:description" content="Mira el trazado y adivina qué recorrido de micro de Santiago es. Una micro nueva cada día." />
-    <meta property="og:url" content="https://microdle.cl/" />
-    <meta property="og:image" content="https://microdle.cl/og.png" />
+    <meta property="og:site_name" content="%SITE_NAME%" />
+    <meta property="og:title" content="%SITE_NAME% — juegos diarios chilenos" />
+    <meta property="og:description" content="%SITE_DESCRIPTION%" />
+    <meta property="og:url" content="%SITE_URL%/" />
+    <meta property="og:image" content="%SITE_URL%/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Microdle: un trazado de micro sobre fondo oscuro y el texto adivina la micro del día" />
-
-    <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Microdle — adivina la micro del día" />
-    <meta name="twitter:description" content="Mira el trazado y adivina qué recorrido de micro de Santiago es." />
-    <meta name="twitter:image" content="https://microdle.cl/og.png" />
+    <meta name="twitter:title" content="%SITE_NAME% — juegos diarios chilenos" />
+    <meta name="twitter:description" content="%SITE_DESCRIPTION%" />
+    <meta name="twitter:image" content="%SITE_URL%/og.png" />
 
-    <!-- Íconos / PWA -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -35,160 +30,29 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="preconnect" href="https://basemaps.cartocdn.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet" />
 
-    <script>
-      // Tema antes de pintar, para evitar parpadeo
-      (function () {
-        var t = 'auto';
-        try {
-          var s = JSON.parse(localStorage.getItem('microdle:settings') || '{}');
-          if (s && s.theme) t = s.theme;
-        } catch (e) {}
-        var dark = t === 'dark' || (t === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
-        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-      })();
-    </script>
+    <!-- theme-script -->
   </head>
   <body>
-    <a class="skip" href="#guess-input">Saltar al campo de respuesta</a>
-
     <header class="top">
-      <div class="top-side">
-        <button type="button" class="icon-btn" id="btn-help" aria-label="Cómo jugar" title="Cómo jugar"></button>
-      </div>
-      <h1 class="brand"><span class="brand-logo" id="brand-logo"></span>MICRODLE</h1>
+      <div class="top-side"></div>
+      <h1 class="brand">%SITE_NAME%</h1>
       <div class="top-side right">
-        <button type="button" class="icon-btn" id="btn-stats" aria-label="Estadísticas" title="Estadísticas"></button>
-        <button type="button" class="icon-btn" id="btn-settings" aria-label="Ajustes" title="Ajustes"></button>
+        <button type="button" class="icon-btn" id="btn-theme" aria-label="Cambiar tema"></button>
       </div>
     </header>
 
-    <nav class="modes" aria-label="Modo de juego">
-      <div class="seg" role="tablist">
-        <button type="button" role="tab" id="tab-daily" aria-selected="true" aria-controls="game">Diario <span id="daily-num"></span></button>
-        <button type="button" role="tab" id="tab-practice" aria-selected="false" aria-controls="game">Práctica</button>
-      </div>
-    </nav>
-
-    <main class="layout" id="game">
-      <section class="map-wrap" aria-label="Mapa del recorrido">
-        <div id="map" role="img" aria-label="Trazado del recorrido misterioso"></div>
-        <div class="map-loading" id="map-loading">Cargando recorridos…</div>
-      </section>
-
-      <section class="panel">
-        <ul class="hints" id="hints" aria-label="Pistas"></ul>
-        <div id="hint-detail" class="hint-detail" aria-live="polite"></div>
-
-        <div class="grid" id="grid"></div>
-
-        <form class="guess" id="guess-form" autocomplete="off" novalidate>
-          <div class="combo">
-            <label for="guess-input" class="sr-only">Escribe un recorrido</label>
-            <input
-              id="guess-input"
-              type="text"
-              inputmode="text"
-              enterkeyhint="send"
-              autocapitalize="characters"
-              autocorrect="off"
-              spellcheck="false"
-              maxlength="6"
-              placeholder="Ej: 506, B27, I09"
-              role="combobox"
-              aria-autocomplete="list"
-              aria-expanded="false"
-              aria-controls="suggestions"
-            />
-            <ul id="suggestions" role="listbox" aria-label="Recorridos" hidden></ul>
-          </div>
-          <button type="submit" class="btn btn-primary">Adivinar</button>
-        </form>
-
-        <div id="result" class="result" hidden aria-live="polite"></div>
-      </section>
+    <main class="hub">
+      <p class="hub-intro">%SITE_DESCRIPTION%</p>
+      <div class="hub-streak" id="hub-streak" aria-live="polite"></div>
+      <ul class="hub-cards" id="hub-cards" aria-label="Juegos"></ul>
     </main>
 
     <footer class="foot">
-      <p>Proyecto independiente, sin afiliación con DTPM ni Red Movilidad. Datos: GTFS DTPM, mapas © OpenStreetMap / CARTO.</p>
+      <p>Proyecto independiente. Microdle no tiene afiliación con DTPM ni Red Movilidad. Datos: GTFS DTPM, mapas © OpenStreetMap / CARTO.</p>
     </footer>
 
-    <div id="toast" class="toast" role="status" aria-live="polite"></div>
-    <div id="sr-live" class="sr-only" aria-live="polite"></div>
-
-    <!-- Cómo jugar -->
-    <dialog id="dlg-help" aria-labelledby="help-title">
-      <div class="dlg">
-        <button type="button" class="dlg-close icon-btn" aria-label="Cerrar"></button>
-        <h2 id="help-title">Cómo jugar</h2>
-        <p>Adivina el <strong>recorrido de micro</strong> de Santiago a partir de su trazado. Tienes <strong>6 intentos</strong>.</p>
-        <p>Escribe un recorrido (ej: <kbd>506</kbd>, <kbd>B27</kbd>, <kbd>I09</kbd>) y elígelo de la lista.</p>
-
-        <h3 class="dlg-sub">Cada fallo abre una pista</h3>
-        <ol class="help-steps">
-          <li><span>0</span> Solo la forma del recorrido, sin mapa.</li>
-          <li><span>1</span> Aparece el mapa base, sin nombres de calles.</li>
-          <li><span>2</span> Aparecen los nombres de calles.</li>
-          <li><span>3</span> Se marcan los terminales.</li>
-          <li><span>4</span> Se muestran las comunas que cruza.</li>
-          <li><span>5</span> Se muestra la zona o letra del recorrido.</li>
-        </ol>
-
-        <h3 class="dlg-sub">Cómo leer cada intento</h3>
-        <div class="help-example" aria-hidden="true">
-          <div class="cell s-neutral"><span class="cell-main">210</span></div>
-          <div class="cell s-some"><span class="cell-main">42%</span><span class="cell-mark">≈</span></div>
-          <div class="cell s-some"><span class="cell-main">↗</span><span class="cell-sub">3.2km</span><span class="cell-mark">≈</span></div>
-          <div class="cell s-some"><span class="cell-main">2</span><span class="cell-mark">≈</span></div>
-          <div class="cell s-none"><span class="cell-main">No</span><span class="cell-mark">✗</span></div>
-        </div>
-        <ul class="help-list">
-          <li><strong>Traza:</strong> % del trazado que se superpone con el real. <span class="key s-all">✓</span> ≥70% · <span class="key s-some">≈</span> ≥30% · <span class="key s-none">✗</span> menos.</li>
-          <li><strong>Distancia:</strong> km entre los centros de ambos recorridos y la flecha hacia dónde está la respuesta.</li>
-          <li><strong>Comunas:</strong> cuántas comunas tienen en común. <span class="key s-all">✓</span> todas · <span class="key s-some">≈</span> algunas · <span class="key s-none">✗</span> ninguna.</li>
-          <li><strong>Zona:</strong> si comparten letra (alimentadores B, C, D…) o centena (troncales 1xx, 2xx…).</li>
-        </ul>
-        <p class="muted">Los servicios cortos, expresos, nocturnos y variantes (506e, B12c…) valen como intento, pero nunca son la respuesta.</p>
-        <p class="muted">Hay una micro nueva cada día a medianoche (hora de Chile). En <strong>Práctica</strong> puedes jugar sin límite sin afectar tus rachas.</p>
-        <button type="button" class="btn btn-primary btn-block" data-close>¡A jugar!</button>
-      </div>
-    </dialog>
-
-    <!-- Estadísticas -->
-    <dialog id="dlg-stats" aria-labelledby="stats-title">
-      <div class="dlg">
-        <button type="button" class="dlg-close icon-btn" aria-label="Cerrar"></button>
-        <h2 id="stats-title">Estadísticas</h2>
-        <div id="stats-body"></div>
-      </div>
-    </dialog>
-
-    <!-- Ajustes -->
-    <dialog id="dlg-settings" aria-labelledby="settings-title">
-      <div class="dlg">
-        <button type="button" class="dlg-close icon-btn" aria-label="Cerrar"></button>
-        <h2 id="settings-title">Ajustes</h2>
-        <fieldset class="setting">
-          <legend>Tema</legend>
-          <div class="seg seg-sm" role="radiogroup">
-            <label><input type="radio" name="theme" value="auto" /> <span>Automático</span></label>
-            <label><input type="radio" name="theme" value="light" /> <span>Claro</span></label>
-            <label><input type="radio" name="theme" value="dark" /> <span>Oscuro</span></label>
-          </div>
-        </fieldset>
-        <label class="setting setting-row">
-          <span>
-            <strong>Mostrar mis intentos en el mapa</strong>
-            <small class="muted">Dibuja tus intentos como líneas punteadas.</small>
-          </span>
-          <input type="checkbox" id="opt-show-guesses" class="switch" />
-        </label>
-        <p class="muted small" id="data-version"></p>
-      </div>
-    </dialog>
-
-    <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="/src/hub/main.ts"></script>
   </body>
 </html>

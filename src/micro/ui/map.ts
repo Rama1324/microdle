@@ -2,7 +2,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { LatLng, RouteData } from '../types';
 import { routePoints } from '../game/feedback';
-import { icons } from './icons';
+import { icons } from '../../shared/ui/icons';
 
 const ATTRIBUTION =
   '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attributions/" target="_blank" rel="noopener">CARTO</a>';
