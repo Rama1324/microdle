@@ -179,4 +179,28 @@ Ver **`design/propuesta.html`**: dirección visual, 3 parejas tipográficas con 
 
 ## Fase 3 — Seguimiento
 
-*(Se completará al implementar: cada ID quedará marcado como ✅ arreglado, ⏸ pendiente con razón, o ✖ descartado con razón.)*
+Leyenda: ✅ arreglado y verificado · ⏸ pendiente (con razón) · ✖ descartado (con razón).
+
+| ID | Estado | Cómo se arregló / verificó |
+|---|---|---|
+| C-01 | ✅ | Nombre "La Once", dominio `laonce.cl` en `config.ts`. Los tokens HTML pasan a `%SITE_*%`. `postbuild` (`scripts/check-dist.ts`) falla si queda un placeholder |
+| C-02 | ✅ | 7 commits por tema, desplegados el 2026-11-11. Días 0–3 congelados con el algoritmo viejo. `tests/legacy-freeze.test.ts` compara contra un snapshot del `routes.json` de producción. Respuesta de hoy (B04) verificada en producción antes y después |
+| A-01/A-02/A-03 | ✅ | `src/shared/schema.ts` + `readValid`: si una key no calza con su esquema, se borra **solo esa key** y se loguea. 14 casos en `tests/storage.test.ts`. En el navegador: datos corruptos → 0 errores, grilla y home completas, stats en 0 sin `NaN`. La home además aísla cada tarjeta con `try/catch` |
+| A-04 | ✅ | Nunca se recarga sola. La partida empezada se termina con la respuesta de su día, y aparece un aviso "Ya hay micro nueva — jugar". Si se cerró a medias y se vuelve después de medianoche, se retoma. Verificado con reloj falso: lo escrito se conserva, gana con la respuesta de ayer, stats y racha global quedan en el día del puzzle |
+| A-05 | ✅ | Barra de respuesta fija en móvil + `visualViewport` (`--kb`) + `interactive-widget=resizes-content`. Input visible sin scroll en 360×640 y 390×780, también con teclado (simulado: headless no tiene teclado virtual; falta probar en iPhone y Android reales). El mapa se aisló con `isolation: isolate` para que sus controles no tapen las sugerencias |
+| A-06 | ✅ | `--gray` #787c7e → #7b7f81 (4.46 → 4.65:1). `tests/contrast.test.ts` calcula todos los pares desde `base.css`, en claro y oscuro |
+| A-07 | ✅ | `.foot a` con `--text` |
+| M-01 | ✅ | `recordDailyPlayed(game, fechaDelPuzzle)` |
+| M-09 | ✅ | Chivo + Chivo Mono self-hosted (Fontsource, OFL) en `public/fonts/`, con `preload` y `font-display: swap`, y fallbacks con `size-adjust` medido. Sin Google Fonts |
+| M-10 | ✅ | Token `--line` (≥3:1) para bordes de input, botones y celdas vacías |
+| M-11 | ✅ (home) | Home: texto ≥14px, metadatos 12px. Microdle sigue con texto de 10–11px en la grilla: ⏸ lo resuelve el sistema de diseño |
+| M-12 | ✅ | CLS de Microdle 0.107 → 0.001: padding de la barra en el HTML inicial + fallbacks de fuente ajustados |
+| P-03 | ✅ | MapLibre se mantiene, con `import()` dinámico solo en `/micro` y solo en tema oscuro. Ni la home ni Microdle lo precargan |
+| Resto de MEDIO y BAJO | ⏸ | Orden acordado: sistema de diseño → Caro → auditoría de Caro → MEDIOS → BAJOS |
+
+**Lighthouse móvil tras los arreglos** (local con brotli, como en Vercel):
+
+| Ruta | Performance | Accessibility | Best Practices | SEO | FCP | LCP | CLS |
+|---|---|---|---|---|---|---|---|
+| `/` | 100 | 100 | 100 | 100 | 1.1 s | 1.5 s | 0 |
+| `/micro/` | 100 | 100 | 100 | 100 | 0.9 s | 1.4 s | 0.001 |
