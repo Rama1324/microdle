@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="es-CL" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Propuesta de diseño · Letrero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;600;800;900&family=Chivo+Mono:wght@500;700&family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;600&family=Big+Shoulders+Display:wght@800&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+/* =====================================================================
+   TOKENS PROPUESTOS (contraste calculado: ver tabla más abajo)
+   ===================================================================== */
+:root {
+  /* tipografía (opción recomendada: Chivo + Chivo Mono) */
+  --font-display: 'Chivo', 'Arial Narrow', sans-serif;
+  --font-text: 'Chivo', system-ui, sans-serif;
+  --font-num: 'Chivo Mono', ui-monospace, monospace;
+
+  /* escala tipográfica (razón ~1.25, mínimo 12px) */
+  --fs-1: 0.75rem;  /* 12 · etiquetas, legales */
+  --fs-2: 0.875rem; /* 14 · texto secundario */
+  --fs-3: 1rem;     /* 16 · texto */
+  --fs-4: 1.25rem;  /* 20 · subtítulos, celdas */
+  --fs-5: 1.5rem;   /* 24 · números destacados */
+  --fs-6: 2rem;     /* 32 · títulos */
+  --fs-7: 2.75rem;  /* 44 · precio / número de micro */
+
+  /* espaciado base 4 */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px;
+  /* radios: letreros, no burbujas */
+  --r-1: 2px; --r-2: 4px; --r-3: 8px;
+  --rule: 2px;          /* filete de letrero */
+  --hit: 44px;          /* objetivo táctil mínimo */
+
+  /* ---- claro: "papel" ---- */
+  --bg: #F4F1EA; --surface: #FFFDF8; --ink: #17191B; --ink-2: #696d71;
+  --line: #878a8b; --line-soft: #E2DDD1; --focus: #1f5fd0;
+  --sign: #F2C230; --on-sign: #17191B;          /* amarillo letrero (hub) */
+  --micro: #6AAA64; --micro-ink: #4b7947;        /* acento Microdle */
+  --caro: #E07A3F; --caro-ink: #a65a2f;          /* acento Caro */
+  --on-feedback: #101213; --ok: #6AAA64; --near: #C9B458; --miss: #7b7f81; --bad: #d9534a; --bad-ink: #bb4740;
+  --map-bg: #ECE8DE; --map-dot: #D6D0C2; --route: #17191B;
+}
+[data-theme='dark'] {
+  /* ---- oscuro: "asfalto" ---- */
+  --bg: #121417; --surface: #1B1E22; --ink: #F1EEE7; --ink-2: #9ea3a8;
+  --line: #646a6f; --line-soft: #2A2E33; --focus: #8db4ff;
+  --micro-ink: #6aaa64; --caro-ink: #e07a3f; --bad-ink: #db5c53;
+  --map-bg: #16191C; --map-dot: #262A2F; --route: #F1EEE7;
+}
+
+/* ===================================================================== */
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-text); font-size: var(--fs-3); line-height: 1.5; }
+.doc { max-width: 1120px; margin: 0 auto; padding: var(--s-6) var(--s-4) var(--s-8); }
+.doc h1 { font: 900 var(--fs-6)/1.1 var(--font-display); margin: 0 0 var(--s-2); letter-spacing: -0.01em; }
+.doc h2 { font: 800 var(--fs-5)/1.2 var(--font-display); margin: var(--s-7) 0 var(--s-3); padding-top: var(--s-4); border-top: var(--rule) solid var(--ink); }
+.doc h3 { font: 800 var(--fs-4)/1.2 var(--font-display); margin: var(--s-5) 0 var(--s-2); }
+.doc p, .doc li { max-width: 72ch; }
+.lead { font-size: var(--fs-4); color: var(--ink-2); margin: 0; }
+.kicker { font: 700 var(--fs-1)/1 var(--font-num); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); margin-bottom: var(--s-3); }
+.toolbar { display: flex; gap: var(--s-2); margin: var(--s-5) 0 0; flex-wrap: wrap; }
+.btn { font: 700 var(--fs-2)/1 var(--font-text); min-height: var(--hit); padding: 0 var(--s-4); border: var(--rule) solid var(--ink); background: var(--surface); color: var(--ink); border-radius: var(--r-2); cursor: pointer; }
+.btn[aria-pressed='true'] { background: var(--ink); color: var(--bg); }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.tbl { overflow-x: auto; max-width: 100%; }
+table { border-collapse: collapse; min-width: 560px; width: 100%; font-size: var(--fs-2); }
+th, td { text-align: left; padding: var(--s-2) var(--s-3); border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+th { font: 700 var(--fs-1)/1.2 var(--font-num); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-2); }
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.sw { display: inline-block; width: 22px; height: 22px; border-radius: var(--r-1); vertical-align: middle; border: 1px solid var(--line); margin-right: var(--s-2); }
+.ok { color: var(--micro-ink); font-weight: 700; }
+
+/* ---------- parejas tipográficas ---------- */
+.pairs { display: grid; gap: var(--s-4); grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.pair { border: var(--rule) solid var(--ink); background: var(--surface); padding: var(--s-4); border-radius: var(--r-2); position: relative; }
+.pair.rec::after { content: 'RECOMENDADA'; position: absolute; top: calc(-1 * var(--s-3)); right: var(--s-3); background: var(--sign); color: var(--on-sign); font: 700 var(--fs-1)/1 var(--font-num); letter-spacing: .1em; padding: var(--s-1) var(--s-2); border-radius: var(--r-1); }
+.pair .name { font: 700 var(--fs-1)/1.3 var(--font-num); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); }
+.pair .disp { font-size: var(--fs-6); line-height: 1.05; margin: var(--s-2) 0; }
+.pair .route { font-size: var(--fs-7); line-height: 1; letter-spacing: -0.01em; }
+.pair .txt { font-size: var(--fs-3); margin: var(--s-2) 0; }
+.pair .nums { font-size: var(--fs-5); font-variant-numeric: tabular-nums; }
+.pair .why { font-size: var(--fs-2); color: var(--ink-2); border-top: 1px solid var(--line-soft); padding-top: var(--s-3); margin-top: var(--s-3); }
+
+/* ======================================================================
+   PREVIEW (marcos de teléfono)
+   ====================================================================== */
+.previews { display: grid; gap: var(--s-6); grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); align-items: start; }
+.frame-wrap figcaption { font: 700 var(--fs-1)/1.3 var(--font-num); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); margin-bottom: var(--s-2); }
+.phone { width: 100%; max-width: 360px; height: 760px; border: var(--rule) solid var(--ink); border-radius: var(--r-3); overflow: hidden; background: var(--bg); color: var(--ink); display: flex; flex-direction: column; position: relative; }
+
+/* barra superior: filete de letrero */
+.bar { display: flex; align-items: center; justify-content: space-between; height: 52px; padding: 0 var(--s-2); border-bottom: var(--rule) solid var(--ink); }
+.icon { width: var(--hit); height: var(--hit); display: grid; place-items: center; color: var(--ink); }
+.icon svg { width: 22px; height: 22px; }
+.wordmark { font: 900 var(--fs-4)/1 var(--font-display); letter-spacing: 0.01em; display: flex; align-items: center; gap: var(--s-2); }
+.wordmark .dot { width: 14px; height: 14px; background: var(--sign); border: var(--rule) solid var(--ink); border-radius: var(--r-1); }
+
+/* franja de fecha estilo letrero amarillo */
+.strip { background: var(--sign); color: var(--on-sign); display: flex; justify-content: space-between; align-items: center; padding: var(--s-2) var(--s-4); font: 700 var(--fs-2)/1.2 var(--font-num); border-bottom: var(--rule) solid var(--ink); }
+.strip b { font-weight: 700; }
+
+.home { padding: var(--s-5) var(--s-4); display: flex; flex-direction: column; gap: var(--s-4); overflow: hidden; }
+.home h2 { all: unset; display: block; font: 900 var(--fs-6)/1.05 var(--font-display); letter-spacing: -0.01em; }
+.home .sub { color: var(--ink-2); font-size: var(--fs-2); margin: calc(-1 * var(--s-2)) 0 0; }
+
+/* tarjeta Microdle: letrero frontal de micro */
+.g-micro { display: grid; grid-template-columns: auto 1fr; border: var(--rule) solid var(--ink); border-radius: var(--r-2); overflow: hidden; text-decoration: none; color: inherit; }
+.g-micro .badge { background: #17191B; color: #F2C230; font: 700 var(--fs-6)/1 var(--font-num); display: grid; place-items: center; padding: 0 var(--s-4); min-width: 104px; letter-spacing: 0.02em; border-right: var(--rule) solid var(--ink); }
+.g-micro .badge small { display: block; font-size: var(--fs-1); color: var(--micro); letter-spacing: .1em; margin-top: var(--s-1); text-align: center; }
+.g-body { padding: var(--s-3) var(--s-4); background: var(--surface); }
+.g-title { font: 800 var(--fs-4)/1.15 var(--font-display); }
+.g-tag { font-size: var(--fs-2); color: var(--ink-2); }
+.g-status { margin-top: var(--s-2); font: 700 var(--fs-1)/1 var(--font-num); text-transform: uppercase; letter-spacing: .08em; display: inline-flex; gap: var(--s-1); align-items: center; padding: var(--s-1) var(--s-2); border: 1px solid currentColor; border-radius: var(--r-1); color: var(--micro-ink); }
+
+/* tarjeta Caro: boleta */
+.g-caro { background: var(--surface); border: var(--rule) solid var(--ink); border-radius: var(--r-2); padding: var(--s-3) var(--s-4) var(--s-4); position: relative; }
+.g-caro::before { content: ''; position: absolute; left: var(--s-3); right: var(--s-3); top: 44px; border-top: 2px dashed var(--line); }
+.receipt-head { display: flex; justify-content: space-between; font: 700 var(--fs-1)/1 var(--font-num); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); padding-bottom: var(--s-5); }
+.receipt-row { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--font-num); font-size: var(--fs-2); }
+.receipt-total { font: 700 var(--fs-5)/1.2 var(--font-num); color: var(--caro-ink); font-variant-numeric: tabular-nums; }
+.g-caro .g-status { color: var(--caro-ink); }
+
+.legal { margin-top: auto; padding: var(--s-3) var(--s-4); font-size: var(--fs-1); color: var(--ink-2); border-top: 1px solid var(--line-soft); }
+.legal a { color: var(--ink); }
+
+/* ---------- juego: Microdle ---------- */
+.gamebar { display: flex; align-items: center; justify-content: space-between; padding: var(--s-2) var(--s-4); border-bottom: 1px solid var(--line-soft); font: 700 var(--fs-2)/1 var(--font-num); }
+.seg { display: inline-flex; border: var(--rule) solid var(--ink); border-radius: var(--r-2); overflow: hidden; }
+.seg span { padding: var(--s-1) var(--s-3); min-height: 32px; display: grid; place-items: center; font: 700 var(--fs-2)/1 var(--font-text); }
+.seg span[aria-current] { background: var(--ink); color: var(--bg); }
+.map { height: 248px; background-color: var(--map-bg); background-image: radial-gradient(var(--map-dot) 1px, transparent 1.4px); background-size: 16px 16px; position: relative; border-bottom: var(--rule) solid var(--ink); }
+.map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.map .tag { position: absolute; left: var(--s-3); top: var(--s-3); background: var(--surface); border: var(--rule) solid var(--ink); border-radius: var(--r-1); padding: var(--s-1) var(--s-2); font: 700 var(--fs-1)/1.2 var(--font-num); letter-spacing: .06em; text-transform: uppercase; }
+.hints { display: flex; gap: var(--s-1); padding: var(--s-3) var(--s-4) 0; flex-wrap: wrap; }
+.hint { font: 700 var(--fs-1)/1 var(--font-num); text-transform: uppercase; letter-spacing: .06em; padding: var(--s-1) var(--s-2); border: 1px solid var(--line); border-radius: var(--r-1); color: var(--ink-2); }
+.hint.on { border-color: var(--ink); color: var(--ink); background: var(--surface); }
+.grid { padding: var(--s-3) var(--s-4); display: grid; gap: var(--s-1); }
+.row { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--s-1); }
+.lab { font: 700 10px/1 var(--font-num); text-transform: uppercase; letter-spacing: .04em; color: var(--ink-2); text-align: center; padding-bottom: var(--s-1); }
+.lab { font-size: var(--fs-1); }
+.c { aspect-ratio: 1; border-radius: var(--r-2); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; font: 700 var(--fs-4)/1 var(--font-num); font-variant-numeric: tabular-nums; color: var(--on-feedback); }
+.c small { font-size: var(--fs-1); margin-top: 2px; }
+.c i { position: absolute; top: 3px; right: 5px; font-style: normal; font-size: var(--fs-1); }
+.c.id { background: var(--surface); color: var(--ink); border: var(--rule) solid var(--ink); }
+.c.ok { background: var(--ok); } .c.near { background: var(--near); } .c.miss { background: var(--miss); }
+.c.empty { border: var(--rule) dashed var(--line); }
+.c.flip { animation: flip 450ms ease both; animation-delay: calc(var(--i) * 180ms); }
+@keyframes flip { 0% { transform: rotateX(0); } 50% { transform: rotateX(90deg); } 100% { transform: rotateX(0); } }
+.answer { position: absolute; left: 0; right: 0; bottom: 0; background: var(--bg); border-top: var(--rule) solid var(--ink); padding: var(--s-3) var(--s-4) calc(var(--s-3) + env(safe-area-inset-bottom)); display: flex; gap: var(--s-2); }
+.answer .in { flex: 1; min-height: 48px; border: var(--rule) solid var(--line); border-radius: var(--r-2); background: var(--surface); display: flex; align-items: center; padding: 0 var(--s-3); font: 700 var(--fs-4)/1 var(--font-num); letter-spacing: .04em; }
+.answer .in em { font: 400 var(--fs-3)/1 var(--font-text); color: var(--ink-2); font-style: normal; }
+.answer .go { min-height: 48px; padding: 0 var(--s-4); background: var(--micro); color: var(--on-feedback); border: var(--rule) solid var(--ink); border-radius: var(--r-2); font: 800 var(--fs-3)/1 var(--font-display); display: grid; place-items: center; }
+
+/* Caro (vista previa chica) */
+.caro-split { flex: 1; display: grid; grid-template-rows: 1fr 1fr; }
+.caro-item { padding: var(--s-4); display: flex; flex-direction: column; justify-content: center; gap: var(--s-1); border-bottom: var(--rule) solid var(--ink); position: relative; }
+.caro-item .cat { font: 700 var(--fs-1)/1 var(--font-num); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
+.caro-item .name { font: 800 var(--fs-5)/1.15 var(--font-display); }
+.caro-item .price { font: 700 var(--fs-7)/1 var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.caro-item .src { font-size: var(--fs-1); color: var(--ink-2); }
+.caro-item.b { background: var(--surface); }
+.vs { position: absolute; right: var(--s-4); top: 0; transform: translateY(-50%); width: 44px; height: 44px; background: var(--caro); color: var(--on-feedback); border: var(--rule) solid var(--ink); border-radius: 50%; display: grid; place-items: center; font: 800 var(--fs-2)/1 var(--font-num); z-index: 2; }
+.caro-btns { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-2); padding: var(--s-3) var(--s-4) var(--s-4); }
+.caro-btns span { min-height: 56px; display: grid; place-items: center; border: var(--rule) solid var(--ink); border-radius: var(--r-2); font: 800 var(--fs-3)/1 var(--font-display); letter-spacing: .02em; background: var(--surface); }
+.caro-btns span:first-child { background: var(--caro); color: var(--on-feedback); }
+.mono-list { font-family: var(--font-num); font-size: var(--fs-2); }
+@media (prefers-reduced-motion: reduce) { .c.flip { animation: none; } }
+</style>
+</head>
+<body>
+<main class="doc">
+  <div class="kicker">Fase 2 · Propuesta de diseño · espera tu OK</div>
+  <h1>Letrero: la interfaz como señalética de calle</h1>
+  <p class="lead">Una sola dirección visual para todo el hub. Toma prestado el lenguaje de lo que uno lee en la calle en Santiago: el letrero frontal de la micro, la placa del paradero y la boleta del almacén. No hay que dibujar ninguna de esas cosas: basta con usar sus reglas.</p>
+  <div class="toolbar" role="group" aria-label="Tema del preview">
+    <button class="btn" type="button" data-theme-btn="light" aria-pressed="true">Claro · papel</button>
+    <button class="btn" type="button" data-theme-btn="dark" aria-pressed="false">Oscuro · asfalto</button>
+  </div>
+
+  <h2>Las reglas de la dirección</h2>
+  <ul>
+    <li><strong>Filetes, no sombras.</strong> Estructura con bordes de 2px en color tinta, como un letrero esmaltado. Cero sombras, cero degradados. Radios de 2 a 8px.</li>
+    <li><strong>Números como protagonistas.</strong> El número de micro, el kilometraje, el precio y la cuenta regresiva van en monoespaciada tabular, como el letrero LED de la micro o una boleta térmica. El texto corrido va en una sans legible.</li>
+    <li><strong>Amarillo de letrero solo para orientarse.</strong> El amarillo (#F2C230) marca dónde estás: la fecha, el número del día, lo recomendado. No se usa para decorar.</li>
+    <li><strong>Cada juego tiene su objeto.</strong> Microdle es un letrero de recorrido (placa negra con el número en amarillo). Caro es una boleta (papel, línea punteada de corte, total en mono).</li>
+    <li><strong>Sin clichés:</strong> nada de bandera, empanadas, "cachai" ni tipografía de pizarra.</li>
+  </ul>
+
+  <h2>Preview</h2>
+  <div class="previews">
+    <figure class="frame-wrap" style="margin:0">
+      <figcaption>Home del hub</figcaption>
+      <div class="phone">
+        <div class="bar">
+          <span class="icon" aria-hidden="true"></span>
+          <span class="wordmark"><span class="dot"></span>[Nombre del hub]</span>
+          <span class="icon" aria-label="Tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg></span>
+        </div>
+        <div class="strip"><span>MIÉ 11 NOV</span><span><b>3</b> días seguidos</span></div>
+        <section class="home">
+          <h2>Un juego al día.</h2>
+          <p class="sub">Sin cuentas ni anuncios. Mañana hay otro.</p>
+
+          <a class="g-micro" href="#">
+            <span class="badge">506<small>MICRO</small></span>
+            <span class="g-body">
+              <span class="g-title">Microdle</span><br />
+              <span class="g-tag">¿Qué micro hace este recorrido?</span><br />
+              <span class="g-status">✓ #3 · resuelto en 3/6</span>
+            </span>
+          </a>
+
+          <div class="g-caro">
+            <div class="receipt-head"><span>¿Qué sale más caro?</span><span>N° 0001</span></div>
+            <div class="receipt-row"><span>PS5 SLIM</span><span>$ ???</span></div>
+            <div class="receipt-row"><span>ARRIENDO PIEZA</span><span>$ ???</span></div>
+            <div class="receipt-row" style="margin-top:var(--s-2)"><span class="g-status">Próximamente</span><span class="receipt-total">$1.299.990</span></div>
+          </div>
+        </section>
+        <div class="legal">Proyecto independiente. Sin afiliación con DTPM ni Red. Datos: GTFS DTPM · mapas © OpenStreetMap / CARTO.</div>
+      </div>
+    </figure>
+
+    <figure class="frame-wrap" style="margin:0">
+      <figcaption>Microdle (con 2 intentos)</figcaption>
+      <div class="phone">
+        <div class="bar">
+          <span class="icon" aria-label="Volver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5l-7 7 7 7"/></svg></span>
+          <span class="wordmark">Microdle</span>
+          <span class="icon" aria-label="Estadísticas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 20V12M12 20V5M19 20v-9"/></svg></span>
+        </div>
+        <div class="gamebar"><span>#3 · MIÉ 11 NOV</span><span class="seg"><span aria-current="true">Diario</span><span>Práctica</span></span></div>
+        <div class="map">
+          <svg viewBox="0 0 360 248" aria-hidden="true"><path d="M70 40 L96 46 L92 70 L104 92 L122 140 L150 158 L168 160 L196 214 L226 222 L290 206" fill="none" stroke="var(--bg)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M70 40 L96 46 L92 70 L104 92 L122 140 L150 158 L168 160 L196 214 L226 222 L290 206" fill="none" stroke="var(--route)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M40 200 L120 150 L200 120 L320 90" fill="none" stroke="var(--miss)" stroke-width="3" stroke-dasharray="2 7" stroke-linecap="round"/></svg>
+          <span class="tag">Pista 2 de 5 · Calles</span>
+        </div>
+        <div class="hints"><span class="hint on">✓ Mapa</span><span class="hint on">✓ Calles</span><span class="hint">Terminales</span><span class="hint">Comunas</span><span class="hint">Zona</span></div>
+        <div class="grid">
+          <div class="row"><span class="lab">Micro</span><span class="lab">Traza</span><span class="lab">Dist.</span><span class="lab">Comunas</span><span class="lab">Zona</span></div>
+          <div class="row"><span class="c id">210</span><span class="c miss"><i>✗</i>6%</span><span class="c near"><i>≈</i>↘<small>4,0 km</small></span><span class="c near"><i>≈</i>1</span><span class="c miss"><i>✗</i>No</span></div>
+          <div class="row"><span class="c id flip" style="--i:0">B27</span><span class="c near flip" style="--i:1"><i>≈</i>41%</span><span class="c near flip" style="--i:2"><i>≈</i>↗<small>2,1 km</small></span><span class="c ok flip" style="--i:3"><i>✓</i>4</span><span class="c ok flip" style="--i:4"><i>✓</i>Sí</span></div>
+          <div class="row"><span class="c empty"></span><span class="c empty"></span><span class="c empty"></span><span class="c empty"></span><span class="c empty"></span></div>
+        </div>
+        <div class="answer"><span class="in"><em>506, B27, I09…</em></span><span class="go">Probar</span></div>
+      </div>
+    </figure>
+
+    <figure class="frame-wrap" style="margin:0">
+      <figcaption>¿Qué sale más caro? (boceto)</figcaption>
+      <div class="phone">
+        <div class="bar">
+          <span class="icon" aria-label="Volver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5l-7 7 7 7"/></svg></span>
+          <span class="wordmark">¿Qué sale más caro?</span>
+          <span class="icon" aria-hidden="true"></span>
+        </div>
+        <div class="gamebar"><span>#1 · 3/10</span><span style="color:var(--caro-ink)">■■■□□□□□□□</span></div>
+        <div class="caro-split">
+          <div class="caro-item"><span class="cat">Transporte</span><span class="name">Carga Bip! de $10.000</span><span class="price">$10.000</span><span class="src">Fuente y fecha del precio (ejemplo)</span></div>
+          <div class="caro-item b"><span class="vs">VS</span><span class="cat">Música</span><span class="name">Entrada a festival (día)</span><span class="price" style="color:var(--ink-2)">$ ???</span><span class="src">Datos de ejemplo, no son precios reales</span></div>
+        </div>
+        <div class="caro-btns"><span>MÁS CARO ↑</span><span>MÁS BARATO ↓</span></div>
+      </div>
+    </figure>
+  </div>
+  <p style="font-size:var(--fs-2);color:var(--ink-2)">Los precios del boceto de Caro son de relleno para mostrar el layout. No son datos.</p>
+
+  <h2>Parejas tipográficas (Google Fonts)</h2>
+  <p>Verifiqué en cada archivo de fuente que la familia de texto tenga la función <code>tnum</code> (números tabulares). Big Shoulders e IBM Plex no la tienen, así que solo sirven para títulos.</p>
+  <div class="pairs">
+    <div class="pair rec">
+      <div class="name">1 · Chivo 900 + Chivo Mono</div>
+      <div class="disp" style="font-family:'Chivo';font-weight:900">¿Qué micro es?</div>
+      <div class="route" style="font-family:'Chivo Mono';font-weight:700">506 · B27</div>
+      <div class="txt" style="font-family:'Chivo'">Adivina el recorrido por su trazado. Tienes seis intentos.</div>
+      <div class="nums" style="font-family:'Chivo Mono';font-weight:500">$1.299.990 · 12,4 km · 07:42:19</div>
+      <div class="why">Las dos son de Omnibus-Type, una fundición argentina. Chivo en 900 tiene el peso de un afiche pegado en la calle, y Chivo Mono es el letrero LED y la boleta. Al ser la misma familia, todo se ve consistente, y la mono cumple lo que pediste para los precios de Caro. Contra: el texto corrido en Chivo es algo ancho; se compensa con 16px y una medida de 65ch.</div>
+    </div>
+    <div class="pair">
+      <div class="name">2 · Barlow Condensed 800 + Barlow</div>
+      <div class="disp" style="font-family:'Barlow Condensed';font-weight:800">¿Qué micro es?</div>
+      <div class="route" style="font-family:'Barlow Condensed';font-weight:800">506 · B27</div>
+      <div class="txt" style="font-family:'Barlow'">Adivina el recorrido por su trazado. Tienes seis intentos.</div>
+      <div class="nums" style="font-family:'Barlow';font-weight:600;font-variant-numeric:tabular-nums">$1.299.990 · 12,4 km · 07:42:19</div>
+      <div class="why">Barlow se inspira en la señalética vial californiana. La condensada se parece mucho a la rotulación de los letreros de recorrido, y ahorra ancho en móvil. Los números son tabulares (<code>tnum</code>), pero no monoespaciados: para Caro habría que aceptar números tabulares en vez de una mono.</div>
+    </div>
+    <div class="pair">
+      <div class="name">3 · Big Shoulders Display 800 + Public Sans</div>
+      <div class="disp" style="font-family:'Big Shoulders Display';font-weight:800;font-size:2.4rem">¿QUÉ MICRO ES?</div>
+      <div class="route" style="font-family:'Big Shoulders Display';font-weight:800">506 · B27</div>
+      <div class="txt" style="font-family:'Public Sans'">Adivina el recorrido por su trazado. Tienes seis intentos.</div>
+      <div class="nums" style="font-family:'Public Sans';font-weight:600;font-variant-numeric:tabular-nums">$1.299.990 · 12,4 km · 07:42:19</div>
+      <div class="why">La más "afiche": Big Shoulders nació de la señalética de Chicago, es muy angosta y muy urbana. Public Sans (del gobierno de EE.UU.) es muy legible y tiene <code>tnum</code>. Contra: Big Shoulders no tiene números tabulares, así que solo sirve para títulos, y en mayúsculas grita bastante.</div>
+    </div>
+  </div>
+
+  <h2>Paleta (tokens) — contraste calculado</h2>
+  <p>Las variantes salen de mezclar cada color base lo mínimo necesario para llegar al ratio, calculado con la fórmula de luminancia relativa de WCAG, no a ojo.</p>
+  <div class="tbl" tabindex="0" role="region" aria-label="Tabla"><table>
+    <thead><tr><th>Token</th><th>Claro</th><th>Oscuro</th><th>Uso</th><th>Contraste (claro / oscuro)</th></tr></thead>
+    <tbody>
+      <tr><td class="num">--bg / --surface</td><td><span class="sw" style="background:#F4F1EA"></span><span class="sw" style="background:#FFFDF8"></span></td><td><span class="sw" style="background:#121417"></span><span class="sw" style="background:#1B1E22"></span></td><td>Papel / asfalto</td><td>—</td></tr>
+      <tr><td class="num">--ink</td><td><span class="sw" style="background:#17191B"></span>#17191B</td><td><span class="sw" style="background:#F1EEE7"></span>#F1EEE7</td><td>Texto, filetes</td><td class="num ok">15.63 / 15.92</td></tr>
+      <tr><td class="num">--ink-2</td><td><span class="sw" style="background:#696d71"></span>#696D71</td><td><span class="sw" style="background:#9ea3a8"></span>#9EA3A8</td><td>Texto secundario</td><td class="num ok">4.62 / 7.26</td></tr>
+      <tr><td class="num">--line</td><td><span class="sw" style="background:#878a8b"></span>#878A8B</td><td><span class="sw" style="background:#646a6f"></span>#646A6F</td><td>Bordes de controles (WCAG 1.4.11)</td><td class="num ok">3.42 / 3.05 (mín. 3)</td></tr>
+      <tr><td class="num">--focus</td><td><span class="sw" style="background:#1f5fd0"></span>#1F5FD0</td><td><span class="sw" style="background:#8db4ff"></span>#8DB4FF</td><td>Anillo de foco</td><td class="num ok">5.16 / 8.88</td></tr>
+      <tr><td class="num">--sign</td><td colspan="2"><span class="sw" style="background:#F2C230"></span>#F2C230 con tinta encima</td><td>Amarillo de letrero (hub)</td><td class="num ok">10.52</td></tr>
+      <tr><td class="num">--micro / --micro-ink</td><td><span class="sw" style="background:#6AAA64"></span><span class="sw" style="background:#4b7947"></span>#4B7947</td><td><span class="sw" style="background:#6aaa64"></span>#6AAA64</td><td>Acento Microdle (fondo / texto)</td><td class="num ok">texto 4.51 / 6.63</td></tr>
+      <tr><td class="num">--caro / --caro-ink</td><td><span class="sw" style="background:#E07A3F"></span><span class="sw" style="background:#a65a2f"></span>#A65A2F</td><td><span class="sw" style="background:#e07a3f"></span>#E07A3F</td><td>Acento Caro (fondo / texto y bordes)</td><td class="num ok">texto 4.51 · 5.01 en surface / 6.17</td></tr>
+      <tr><td class="num">--ok · --near · --miss · --bad</td><td colspan="2"><span class="sw" style="background:#6AAA64"></span><span class="sw" style="background:#C9B458"></span><span class="sw" style="background:#7b7f81"></span><span class="sw" style="background:#d9534a"></span>con texto #101213</td><td>Feedback (siempre con símbolo ✓ ≈ ✗)</td><td class="num ok">6.75 · 9.08 · 4.65 · 4.73</td></tr>
+      <tr><td class="num">--bad-ink</td><td><span class="sw" style="background:#bb4740"></span>#BB4740</td><td><span class="sw" style="background:#db5c53"></span>#DB5C53</td><td>Texto de error</td><td class="num ok">4.55 / 4.98</td></tr>
+    </tbody>
+  </table></div>
+  <p style="font-size:var(--fs-2);color:var(--ink-2)">Cambios respecto de hoy: <span class="num">--miss</span> sube de #787C7E (4.46:1, falla) a #7B7F81 (4.65:1), y los bordes de controles pasan de 1.46:1 a 3.42:1.</p>
+
+  <h2>Escalas</h2>
+  <div class="tbl" tabindex="0" role="region" aria-label="Tabla"><table>
+    <thead><tr><th>Escala</th><th>Tokens</th><th>Regla</th></tr></thead>
+    <tbody>
+      <tr><td>Tipografía</td><td class="num">--fs-1 12 · --fs-2 14 · --fs-3 16 · --fs-4 20 · --fs-5 24 · --fs-6 32 · --fs-7 44</td><td>7 tamaños en vez de 24. Nada bajo 12px. Pesos: 400, 700 y 900 en display. Mono en 500 y 700</td></tr>
+      <tr><td>Espaciado (base 4)</td><td class="num">4 · 8 · 12 · 16 · 24 · 32 · 48 · 64</td><td>8 valores en vez de 16. Todo margen, padding y gap usa un token</td></tr>
+      <tr><td>Radios</td><td class="num">--r-1 2 · --r-2 4 · --r-3 8</td><td>Letrero, no burbuja. 50% solo en el "VS" de Caro</td></tr>
+      <tr><td>Filetes</td><td class="num">--rule 2px · 1px para separadores suaves</td><td>Reemplazan a las sombras</td></tr>
+      <tr><td>Táctil</td><td class="num">--hit 44px</td><td>Mínimo para botones de ícono, tabs y controles del mapa</td></tr>
+      <tr><td>Movimiento</td><td class="num">--t-fast 120ms · --t-base 220ms · flip 450ms · contador 800ms</td><td>Todo bajo 400ms salvo el flip y el contador. Con <code>prefers-reduced-motion</code> todo es instantáneo y sin esperas</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Microinteracciones</h2>
+  <ul>
+    <li><strong>Flip de celdas (Microdle):</strong> 450ms por celda con 180ms de desfase, en el eje X, como un letrero de paletas que gira. El color aparece a mitad del giro. Con reduced-motion se ve el resultado directo y el input se habilita al tiro (hoy hay que esperar 1.2s, B-07).</li>
+    <li><strong>Contador de precio (Caro):</strong> de 0 al precio en 800ms con easing <code>easeOutCubic</code> y <code>requestAnimationFrame</code>. Va en mono tabular para que los dígitos no "bailen". Usa el formato <code>$1.299.990</code> con <code>Intl.NumberFormat('es-CL')</code> y anuncia el valor final solo una vez por <code>aria-live</code>.</li>
+    <li><strong>Háptico:</strong> <code>navigator.vibrate</code> solo si existe, solo en móvil y solo tras una acción del usuario. 10ms al enviar, [20, 40, 20] al acertar, 60ms al fallar. Se apaga con reduced-motion y con un switch en Ajustes. iOS no lo soporta: ahí no hace nada.</li>
+    <li><strong>Botones:</strong> al presionar, el botón baja 1px y pierde 1px de filete (como un botón físico), en 120ms. No crece ni brilla.</li>
+    <li><strong>Revelación del recorrido:</strong> se mantiene el dibujo progresivo de la línea. Al terminar aparece el número en una placa negra con el número en amarillo (el mismo objeto de la tarjeta de la home).</li>
+  </ul>
+
+  <h2>Copy</h2>
+  <div class="tbl" tabindex="0" role="region" aria-label="Tabla"><table>
+    <thead><tr><th>Dónde</th><th>Hoy</th><th>Propuesta</th></tr></thead>
+    <tbody>
+      <tr><td>Home, título</td><td>Juegos diarios chilenos: adivina la micro, compara precios y más.</td><td><strong>Un juego al día.</strong> Sin cuentas ni anuncios. Mañana hay otro.</td></tr>
+      <tr><td>Racha</td><td>🔥 3 días seguidos jugando</td><td>3 días seguidos</td></tr>
+      <tr><td>Microdle, pregunta</td><td>(no hay)</td><td>¿Qué micro hace este recorrido?</td></tr>
+      <tr><td>Input</td><td>Ej: 506, B27, I09 · Adivinar</td><td>506, B27, I09… · <strong>Probar</strong></td></tr>
+      <tr><td>Acierto (1 a 6)</td><td>¡Increíble! A la primera · ¡Impresionante! · ¡Muy bien!…</td><td>A la primera. · En 2. Bien leído. · En 3. · En 4. · En 5. Justo. · En la última.</td></tr>
+      <tr><td>Derrota</td><td>Esta vez no fue · Era la 506</td><td>Era la 506. Mañana sale otra.</td></tr>
+      <tr><td>Error de input</td><td>No es un recorrido válido</td><td>Ese número no existe. Prueba con otro.</td></tr>
+      <tr><td>Repetido</td><td>Ya probaste esa micro</td><td>Esa ya la probaste.</td></tr>
+      <tr><td>Copiar</td><td>Resultado copiado al portapapeles · No se pudo copiar 😕</td><td>Copiado. Pégalo donde quieras. · No se pudo copiar. Mantén presionado el texto para copiarlo.</td></tr>
+      <tr><td>Cuenta regresiva</td><td>Próximo juego en</td><td>Próxima micro en (Microdle) · Próxima boleta en (Caro)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Lo que necesito que decidas</h2>
+  <ol>
+    <li><strong>Pareja tipográfica:</strong> 1 (Chivo + Chivo Mono, recomendada), 2 o 3.</li>
+    <li><strong>La dirección "Letrero"</strong> tal cual o con ajustes.</li>
+    <li><strong>MapLibre:</strong> mantener el mapa oscuro vectorial (185 KB brotli) o volver al raster oscuro (AUDIT.md, P-03).</li>
+  </ol>
+</main>
+<script>
+  document.querySelectorAll('[data-theme-btn]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.documentElement.dataset.theme = b.dataset.themeBtn;
+      document.querySelectorAll('[data-theme-btn]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    });
+  });
+</script>
+</body>
+</html>

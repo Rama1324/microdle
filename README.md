@@ -1,200 +1,73 @@
-# Microdle 🚌
+# La Once
 
-**Adivina la micro del día.** Un juego diario donde ves el trazado de un recorrido de bus de Santiago y tienes 6 intentos para adivinar cuál es. Cada fallo abre una pista nueva.
+Juegos diarios chilenos en **[laonce.cl](https://laonce.cl)**. Sitio 100 % estático (Vite + TypeScript), sin backend ni login; el progreso vive en `localStorage`.
 
-Sitio 100 % estático (Vite + TypeScript + Leaflet), sin backend ni login. El progreso y las estadísticas se guardan en `localStorage`.
+| Juego | Ruta | Estado |
+|---|---|---|
+| **Microdle**: adivina la micro por su trazado | `/micro/` | Publicado |
+| **¿Qué sale más caro?**: higher/lower con precios de Chile | `/caro/` | En desarrollo |
+
+`microdle.cl` redirige a `laonce.cl/micro/` (ver `vercel.json`).
 
 > Proyecto independiente, sin afiliación con DTPM ni Red Movilidad. Datos: GTFS DTPM, mapas © OpenStreetMap / CARTO.
 
----
-
-## Requisitos
-
-- Node.js 20 o superior
-- Una API key **gratuita** de CARTO Basemaps (ver más abajo)
+## Desarrollo
 
 ```bash
 npm install
+npm run dev        # http://localhost:5173  (home) · /micro/
+npm test           # tests (schedule, migración, seed diario, días heredados)
+npm run build      # prebuild: check-schedules · build · postbuild: check-dist
+npm run preview
 ```
 
-## 1. Descargar el GTFS de DTPM
+### Configuración central
 
-1. Entra a <https://www.dtpm.cl/index.php/gtfs-vigente>.
-2. Descarga el ZIP vigente (por ejemplo, `GTFS_20261003.zip`).
-3. Descomprímelo en `data/gtfs/` para que queden `data/gtfs/routes.txt`, `trips.txt`, `shapes.txt`, `stops.txt`, `stop_times.txt`, etc.
+`src/shared/config.ts` es el **único** lugar con el nombre, el dominio y la descripción del hub, más los datos de cada juego (ruta, acento, fecha del #1). Los HTML usan `%SITE_NAME%`, `%SITE_DOMAIN%`, `%SITE_DESCRIPTION%` y `%SITE_URL%`, que reemplaza el plugin de `vite.config.ts`. `postbuild` falla si queda alguno sin reemplazar.
 
-```bash
-# Linux / macOS / Git Bash
-curl -L -o gtfs.zip https://www.dtpm.cl/descargas/gtfs/GTFS_20261003.zip
-unzip -o gtfs.zip -d data/gtfs
-```
+### API key del mapa (CARTO)
 
-`data/gtfs/` está en `.gitignore`: pesa unos 70 MB y no se publica.
-El archivo de comunas `data/comunas-rm.geojson` (52 comunas de la RM) sí se versiona.
-Viene de [caracena/chile-geojson](https://github.com/caracena/chile-geojson).
-
-## 2. Generar `public/routes.json`
-
-```bash
-npm run data
-# opciones:
-npm run data -- --gtfs data/gtfs --comunas data/comunas-rm.geojson --out public/routes.json --tolerance 0.0005
-```
-
-El script (`scripts/build-data.ts`):
-
-1. Lee `routes.txt` y se queda solo con los buses de Red (`route_type = 3`, agencia `RM`). Excluye Metro, trenes y el bus al aeropuerto.
-2. Por cada recorrido toma **un** shape representativo: el más largo del sentido ida (`direction_id = 0`).
-3. Simplifica la geometría con Douglas-Peucker (`@turf/simplify`, tolerancia 0.0005°, unos 50 m).
-4. Calcula las comunas que cruza. Muestrea el trazado cada 100 m y cuenta una comuna solo si tiene al menos 3 muestras, para no contar las que apenas toca en el borde.
-5. Calcula también el centroide (ponderado por largo), el largo en km y los terminales (primer y último paradero del viaje representativo, sacados de `stop_times.txt`).
-6. Marca como `elegible: false` los servicios cortos (`c`), expresos (`e`), nocturnos (`n`) y variantes (`v`). Se pueden usar como intento, pero nunca son la respuesta.
-
-**Cuando DTPM publique un GTFS nuevo**, reemplaza `data/gtfs/`, corre `npm run data` y vuelve a desplegar.
-
-### Formato
-
-```jsonc
-{
-  "version": "2026-11-09",
-  "gtfs": "GTFS DTPM V168.20261003 (desde 2026-10-03)",
-  "routes": [
-    {
-      "id": "506",
-      "nombre": "Maipu - Peñalolen",
-      "shape": "polilínea codificada (Google, precisión 5)",
-      "comunas": ["Maipú", "Estación Central", "Santiago", "Ñuñoa", "Peñalolén"],
-      "centroide": [-33.48625, -70.68553],
-      "largoKm": 36.9,
-      "origen": "Avenida Portales / esq. La Galaxia",
-      "destino": "Av. Diagonal Las Torres / esq. Álvaro Casanova",
-      "zona": "5",
-      "elegible": true
-    }
-  ]
-}
-```
-
-`zona` es la letra del alimentador (`B`…`J`) o el dígito de la centena del troncal (`1`…`7`).
-
-## 3. API key del mapa (CARTO)
-
-Desde 2026, CARTO Basemaps exige una key. Sin ella, los tiles aparecen con la marca de agua *"API KEY REQUIRED"*.
-
-1. Pídela gratis (solo con un e-mail) en <https://carto.com/basemaps/apikey>. Es gratis hasta 5 M de tiles al mes para proyectos no comerciales y hasta 1 M para uso comercial.
-2. Copia `.env.example` a `.env.local` y pega la key:
-
-   ```
-   VITE_CARTO_KEY=tu_key
-   ```
-
-3. En Vercel o Netlify, define `VITE_CARTO_KEY` como variable de entorno del proyecto. Se incrusta al compilar.
-
-El juego funciona sin key: el paso 0 (forma pura) no usa mapa base. Pero desde el primer fallo se verá la marca de agua.
-
-### Temas del mapa
-
-- **Claro:** tiles raster Positron (`light_nolabels`, y `light_all` desde el fallo 2).
-- **Oscuro:** estilo vectorial Dark Matter con MapLibre GL. Se recolorean las etiquetas para que se lean bien: nombres de calles en amarillo y lugares en blanco, con halo negro. MapLibre (~220 KB gzip) se descarga solo en tema oscuro y recién cuando aparece el mapa. Si el navegador no tiene WebGL, se usa el raster `dark_*` como respaldo.
-
-En Vercel, define `VITE_CARTO_KEY` como tipo **Config**, no Secret: las variables `VITE_*` se incrustan en el JavaScript público, y Vercel no deja marcarlas como secretas.
-
-## 4. Desarrollo local
-
-```bash
-npm run dev        # http://localhost:5173
-npm run typecheck
-npm run build      # genera dist/
-npm run preview    # sirve dist/ en http://localhost:4173
-```
-
-Para empezar de cero, borra las claves `microdle:*` de `localStorage` en DevTools.
-
-### Íconos e imagen OG
-
-```bash
-npm run assets
-```
-
-Genera desde SVG (con `sharp`): `favicon.svg`, `favicon-32.png`, `icon-192/512.png`, `icon-maskable-512.png`, `apple-touch-icon.png`, `manifest.webmanifest` y `og.png` (1200×630).
-La imagen OG dibuja la red completa de recorridos y destaca un servicio **no elegible**, así nunca revela una respuesta.
-Los archivos generados se versionan, así que el build del hosting no necesita correr este paso.
-
-## 5. Desplegar
-
-**Vercel:** importa el repo. `vercel.json` ya define `npm run build` → `dist`. Agrega `VITE_CARTO_KEY` en *Settings → Environment Variables*.
-
-**Netlify:** importa el repo. `netlify.toml` ya define build y headers. Agrega `VITE_CARTO_KEY` en *Site configuration → Environment variables*.
-
-Si usas otro dominio distinto de `microdle.cl`, cambia las URLs absolutas de `og:url`, `og:image`, `twitter:image` y `canonical` en `index.html`, además de `SITE` en `src/game/share.ts`.
-
----
-
-## Cómo funciona
-
-### Respuesta del día
-
-- El día se calcula con la fecha en `America/Santiago`. El #1 es el 2026-11-09 (`EPOCH` en `src/game/daily.ts`).
-- Los recorridos elegibles se ordenan por id y se barajan con Fisher-Yates + `mulberry32`, usando una semilla fija por ciclo. Así todos los jugadores ven la misma micro y ninguna se repite hasta agotar la lista (314 recorridos). Al agotarse empieza un ciclo nuevo con otro orden.
-- La respuesta **no está escrita** en el bundle ni en `routes.json`: se calcula en el cliente. En modo práctica, la respuesta se guarda ofuscada en `localStorage`.
-- ⚠️ Si `routes.json` cambia (GTFS nuevo con recorridos agregados o eliminados), cambia la lista elegible y con ella el calendario desde ese despliegue. Todos siguen viendo la misma micro. Si quieres evitar que cambie la micro a mitad de día, conviene desplegar los datos nuevos justo después de medianoche.
-
-### Pistas (una por fallo)
-
-| Fallos | Se revela |
-|---|---|
-| 0 | Solo la forma, sobre un fondo sin mapa |
-| 1 | Mapa base sin nombres (`*_nolabels`) |
-| 2 | Mapa con nombres de calles (`*_all`) |
-| 3 | Terminales (A y B) |
-| 4 | Comunas que cruza |
-| 5 | Zona o letra del recorrido |
-
-### Feedback por intento
-
-- **Traza:** superposición simétrica = (largo del intento a ≤120 m del real + largo del real a ≤120 m del intento) / (suma de ambos largos). Verde ≥70 %, amarillo ≥30 %.
-- **Distancia:** km entre centroides y flecha (8 rumbos) desde el intento hacia la respuesta. Amarillo si está a ≤5 km.
-- **Comunas:** cantidad en común. Verde si son exactamente las mismas, amarillo si comparten alguna, gris si ninguna.
-- **Zona:** misma letra o centena, sí o no.
-
-Cada celda lleva además un símbolo (✓ ≈ ✗) y un `aria-label`, así que no depende solo del color. El texto sobre las celdas es oscuro para cumplir contraste AA en los tres colores.
+CARTO Basemaps exige una key gratuita (<https://carto.com/basemaps/apikey>). Defínela como `VITE_CARTO_KEY` en `.env.local` y en Vercel, con tipo **Config** (las variables `VITE_*` quedan en el JS público). Si activas la restricción de sitios en CARTO, agrega `laonce.cl` y `localhost`.
 
 ## Estructura
 
 ```
-├─ data/
-│  ├─ gtfs/                  GTFS DTPM descomprimido (no versionado)
-│  └─ comunas-rm.geojson
-├─ scripts/
-│  ├─ build-data.ts          GTFS → public/routes.json
-│  └─ build-assets.ts        íconos, manifest, og.png
-├─ public/                   routes.json + íconos + manifest + og.png
-├─ src/
-│  ├─ main.ts                estado del juego y conexión con la UI
-│  ├─ types.ts
-│  ├─ styles.css
-│  ├─ game/                  lógica pura (sin DOM)
-│  │  ├─ daily.ts            fecha Chile, calendario, cuenta regresiva
-│  │  ├─ rng.ts              hash + PRNG + barajado con semilla
-│  │  ├─ geo.ts              distancias, rumbo, superposición
-│  │  ├─ polyline.ts         codificar/decodificar polilíneas
-│  │  ├─ feedback.ts
-│  │  ├─ share.ts            texto sin spoilers + Web Share / portapapeles
-│  │  ├─ stats.ts
-│  │  └─ storage.ts          localStorage con try/catch
-│  └─ ui/
-│     ├─ map.ts              Leaflet, revelación progresiva, animación final
-│     ├─ grid.ts             grilla con animación flip
-│     ├─ input.ts            combobox accesible con autocompletado
-│     ├─ modals.ts
-│     └─ icons.ts
-├─ index.html
-├─ vercel.json / netlify.toml
-└─ .env.example
+index.html            home del hub
+micro/index.html      Microdle
+src/shared/           config, time (calendario de Santiago), rng, store (localStorage),
+                      stats, activity (racha global), theme, share, schedule, ui/
+src/hub/              home
+src/micro/            Microdle (game/, ui/, state.ts)
+scripts/              build-data (GTFS), schedule, check-schedules, check-dist, build-assets
+public/micro/         routes.json, schedule.json, og.png
+tests/                node:test vía tsx
+AUDIT.md              auditoría de lanzamiento y seguimiento
+design/propuesta.html propuesta de sistema de diseño (pendiente de aprobación)
 ```
 
-## Licencias y créditos
+## Schedule diario append-only (todos los juegos)
 
-- Datos de recorridos: GTFS publicado por DTPM.
-- Límites comunales: [caracena/chile-geojson](https://github.com/caracena/chile-geojson).
-- Mapas: © OpenStreetMap contributors, © CARTO.
+El puzzle de cada día está en un archivo **generado y commiteado** (`public/<juego>/schedule.json`). El cliente solo lo lee.
+
+- Al regenerarlo (`npm run schedule`), los días pasados, hoy y mañana se **copian sin cambios**. Solo se recalculan los días futuros. Agregar o quitar ítems nunca cambia un puzzle ya publicado.
+- Cada día se guarda ofuscado: el repo y el bundle no traen las respuestas en texto plano.
+- `prebuild` falla si el schedule cubre menos de 14 días desde hoy, o si un día congelado apunta a algo que no existe en los datos.
+- **Microdle:** los días 2026-11-09 a 2026-11-12 se publicaron con el algoritmo anterior. Están congelados idénticos (`src/micro/game/legacy.ts`, `tests/legacy-freeze.test.ts`).
+
+## Microdle: datos
+
+1. Descarga el GTFS vigente desde <https://www.dtpm.cl/index.php/gtfs-vigente> y descomprímelo en `data/gtfs/`.
+2. `npm run data`: genera `public/micro/routes.json` y extiende el schedule.
+3. Commitea `routes.json` y `schedule.json`.
+
+Si un recorrido que es respuesta de un día congelado desaparece del GTFS, se conserva con su shape histórico (`historico: true`, nunca vuelve a salir como respuesta).
+
+Íconos, manifest y OG: `npm run assets`.
+
+## Despliegue (Vercel)
+
+Importa el repo. `vercel.json` define el build y los redirects. En **Settings → Domains** agrega `laonce.cl`, `www.laonce.cl`, `microdle.cl` y `www.microdle.cl`. Los redirects por host ya están en `vercel.json`.
+
+## Créditos
+
+GTFS: DTPM · límites comunales: [caracena/chile-geojson](https://github.com/caracena/chile-geojson) · mapas: © OpenStreetMap contributors, © CARTO.
