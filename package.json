@@ -3,12 +3,16 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Adivina la micro del día de Santiago a partir de su trazado.",
+  "description": "Hub de juegos diarios chilenos: Microdle y más.",
   "scripts": {
     "dev": "vite",
+    "prebuild": "tsx scripts/check-schedules.ts",
     "build": "tsc --noEmit && vite build",
+    "postbuild": "tsx scripts/check-dist.ts",
     "preview": "vite preview",
-    "data": "tsx scripts/build-data.ts",
+    "test": "tsx --test tests/*.test.ts",
+    "data": "tsx scripts/build-data.ts && tsx scripts/schedule.ts --game micro",
+    "schedule": "tsx scripts/schedule.ts",
     "assets": "tsx scripts/build-assets.ts",
     "typecheck": "tsc --noEmit"
   },

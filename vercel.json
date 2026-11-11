@@ -2,9 +2,29 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "microdle.cl" }],
+      "destination": "https://laonce.cl/micro/",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.microdle.cl" }],
+      "destination": "https://laonce.cl/micro/",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.laonce.cl" }],
+      "destination": "https://laonce.cl/:path*",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
-      "source": "/routes.json",
+      "source": "/(.*)\\.json",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }]
     },
     {

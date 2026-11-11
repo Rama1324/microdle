@@ -1,14 +1,15 @@
 /**
  * Genera íconos, manifest PWA e imagen Open Graph a partir de SVG.
- * Requiere public/routes.json (corre antes `npm run data`).
+ * Requiere public/micro/routes.json (corre antes `npm run data`).
  *
  *   npm run assets
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import sharp from 'sharp';
-import { decodePolyline } from '../src/game/polyline';
-import type { LatLng, RoutesFile } from '../src/types';
+import { decodePolyline } from '../src/micro/game/polyline';
+import type { LatLng, RoutesFile } from '../src/micro/types';
+import { GAMES, HUB } from '../src/shared/config';
 
 const PUB = resolve('public');
 
@@ -102,13 +103,13 @@ function ogSvg(data: RoutesFile): string {
         .join('')}
       <text x="170" y="31" font-size="28" font-weight="700" fill="#a7acad">6 intentos · Santiago</text>
     </g>
-    <text x="70" y="580" font-size="24" font-weight="600" fill="#7d8384">microdle.cl</text>
+    <text x="70" y="580" font-size="24" font-weight="600" fill="#7d8384">${HUB.domain}${GAMES.micro.path}</text>
   </g>
 </svg>`;
 }
 
 async function main() {
-  const data: RoutesFile = JSON.parse(readFileSync(resolve(PUB, 'routes.json'), 'utf8'));
+  const data: RoutesFile = JSON.parse(readFileSync(resolve(PUB, 'micro/routes.json'), 'utf8'));
 
   const svgIcon = icon();
   writeFileSync(resolve(PUB, 'favicon.svg'), svgIcon);
@@ -120,12 +121,12 @@ async function main() {
   await png(icon({ padded: true }), 180, 'apple-touch-icon.png');
 
   const og = ogSvg(data);
-  await sharp(Buffer.from(og)).png({ compressionLevel: 9 }).toFile(resolve(PUB, 'og.png'));
+  await sharp(Buffer.from(og)).png({ compressionLevel: 9 }).toFile(resolve(PUB, 'micro/og.png'));
 
   const manifest = {
-    name: 'Microdle — adivina la micro del día',
-    short_name: 'Microdle',
-    description: 'Adivina el recorrido de micro de Santiago a partir de su trazado.',
+    name: HUB.name,
+    short_name: HUB.name,
+    description: HUB.description,
     lang: 'es-CL',
     start_url: '/',
     scope: '/',
@@ -139,6 +140,7 @@ async function main() {
       { src: '/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
       { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml' },
     ],
+    shortcuts: [{ name: GAMES.micro.title, url: `${GAMES.micro.path}/`, description: GAMES.micro.tagline }],
   };
   writeFileSync(resolve(PUB, 'manifest.webmanifest'), JSON.stringify(manifest, null, 2));
   console.log('Íconos, manifest y og.png generados en public/');

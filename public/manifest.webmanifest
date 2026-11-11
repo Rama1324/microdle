@@ -1,7 +1,7 @@
 {
-  "name": "Microdle — adivina la micro del día",
-  "short_name": "Microdle",
-  "description": "Adivina el recorrido de micro de Santiago a partir de su trazado.",
+  "name": "La Once",
+  "short_name": "La Once",
+  "description": "Juegos diarios chilenos: adivina la micro, compara precios y más.",
   "lang": "es-CL",
   "start_url": "/",
   "scope": "/",
@@ -30,6 +30,13 @@
       "src": "/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Microdle",
+      "url": "/micro/",
+      "description": "Adivina la micro del día por su trazado"
     }
   ]
 }
