@@ -15,6 +15,9 @@ import { santiagoISO } from '../src/shared/time';
 import { MICRO_EPOCH, MICRO_SALT, answerPool, generateMicroDay, microDayIndex } from '../src/micro/game/daily';
 import { legacyAnswerForDay, MICRO_LEGACY_UNTIL } from '../src/micro/game/legacy';
 import type { RoutesFile } from '../src/micro/types';
+import { CARO_EPOCH, CARO_SALT, generateCaroDay, pricedPool } from '../src/caro/game';
+import type { CaroItemsFile } from '../src/caro/types';
+import { dayIndex } from '../src/shared/time';
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(`--${name}`);
@@ -56,5 +59,32 @@ function scheduleMicro() {
   );
 }
 
+/**
+ * Caro: cada día son 11 ítems (10 comparaciones) con su precio congelado
+ * ("id@precio"): si después se actualiza un precio, los días publicados no cambian.
+ */
+function scheduleCaro() {
+  const itemsPath = resolve('public/caro/items.json');
+  const outPath = resolve('public/caro/schedule.json');
+  const data = readJSON<CaroItemsFile>(itemsPath);
+  if (!data) throw new Error(`No existe ${itemsPath}. Corre "npm run caro" (valida data/caro.json) primero.`);
+  const prev = readJSON<ScheduleFile>(outPath);
+  const today = Number(arg('today') ?? dayIndex(CARO_EPOCH));
+  const res = extendSchedule({
+    prev,
+    game: 'caro',
+    epoch: CARO_EPOCH,
+    salt: CARO_SALT,
+    today,
+    generate: generateCaroDay(pricedPool(data.items)),
+    generatedOn: santiagoISO(),
+  });
+  write(outPath, res.file);
+  console.log(
+    `caro: ${res.file.days.length} días, congelados 0..${res.file.frozenThrough} · ${res.kept} copiados sin cambios · ${data.items.length} ítems`,
+  );
+}
+
 const game = arg('game') ?? 'all';
 if (game === 'micro' || game === 'all') scheduleMicro();
+if (game === 'caro' || game === 'all') scheduleCaro();

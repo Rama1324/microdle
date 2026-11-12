@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es-CL">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>¿Qué sale más caro? · %SITE_NAME%</title>
+    <meta name="description" content="Más caro o más barato: compara precios reales de cosas en Chile, con su fuente. 10 comparaciones al día y un modo infinito." />
+    <meta name="theme-color" content="#f4f1ea" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121417" media="(prefers-color-scheme: dark)" />
+    <link rel="canonical" href="%SITE_URL%/caro/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_CL" />
+    <meta property="og:site_name" content="%SITE_NAME%" />
+    <meta property="og:title" content="¿Qué sale más caro?" />
+    <meta property="og:description" content="Más caro o más barato: precios reales de cosas en Chile. 10 comparaciones al día." />
+    <meta property="og:url" content="%SITE_URL%/caro/" />
+    <meta property="og:image" content="%SITE_URL%/caro/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="¿Qué sale más caro?" />
+    <meta name="twitter:description" content="Más caro o más barato: precios reales de cosas en Chile." />
+    <meta name="twitter:image" content="%SITE_URL%/caro/og.png" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preload" href="/fonts/chivo-latin-wght.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/chivo-mono-latin-wght.woff2" as="font" type="font/woff2" crossorigin />
+
+    <!-- theme-script -->
+  </head>
+  <body data-game="caro">
+    <a class="skip" href="#duel">Saltar al juego</a>
+
+    <header class="top">
+      <div class="top-side">
+        <a class="icon-btn" href="/" id="btn-home" aria-label="Volver a %SITE_NAME%" title="Todos los juegos"></a>
+        <button type="button" class="icon-btn" id="btn-help" aria-label="Cómo jugar" title="Cómo jugar"></button>
+      </div>
+      <h1 class="brand caro-brand">¿Qué sale más caro?</h1>
+      <div class="top-side right">
+        <button type="button" class="icon-btn" id="btn-stats" aria-label="Estadísticas" title="Estadísticas"></button>
+        <button type="button" class="icon-btn" id="btn-settings" aria-label="Ajustes" title="Ajustes"></button>
+      </div>
+    </header>
+
+    <div id="new-day" class="new-day" role="status" hidden>Ya hay boleta nueva — <a href="?hoy">jugar</a></div>
+
+    <div class="gamebar">
+      <div class="progress" id="progress" aria-live="polite"></div>
+      <div class="seg" role="tablist" aria-label="Modo de juego">
+        <button type="button" role="tab" id="tab-daily" aria-selected="true" aria-controls="duel">Diario</button>
+        <button type="button" role="tab" id="tab-infinite" aria-selected="false" aria-controls="duel">Infinito</button>
+      </div>
+    </div>
+
+    <main class="caro" id="game">
+      <div class="duel" id="duel" tabindex="-1">
+        <section class="side side-a" id="side-a" aria-labelledby="name-a">
+          <span class="cat label" id="cat-a"></span>
+          <h2 class="name" id="name-a">Cargando…</h2>
+          <p class="price num" id="price-a"></p>
+          <p class="src" id="src-a"></p>
+        </section>
+        <div class="vs" aria-hidden="true">VS</div>
+        <section class="side side-b" id="side-b" aria-labelledby="name-b">
+          <span class="cat label" id="cat-b"></span>
+          <h2 class="name" id="name-b"></h2>
+          <p class="price num" id="price-b" aria-live="off"></p>
+          <p class="verdict label" id="verdict" hidden></p>
+          <p class="src" id="src-b"></p>
+        </section>
+      </div>
+
+      <div class="controls" id="controls">
+        <p class="phrase" id="phrase" aria-live="polite"></p>
+        <div class="answer-btns" id="answer-btns">
+          <button type="button" class="btn btn-big btn-higher" id="btn-higher">MÁS CARO <span aria-hidden="true">↑</span></button>
+          <button type="button" class="btn btn-big btn-lower" id="btn-lower">MÁS BARATO <span aria-hidden="true">↓</span></button>
+        </div>
+        <button type="button" class="btn btn-big btn-next" id="btn-next" hidden>Siguiente <span aria-hidden="true">→</span></button>
+      </div>
+
+      <section class="end" id="end" hidden aria-live="polite"></section>
+
+      <section class="soon" id="soon" hidden>
+        <h2>Próximamente</h2>
+        <p>Faltan precios verificados para armar el juego de hoy.</p>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <p><a href="/">← Más juegos en %SITE_NAME%</a></p>
+      <p>Precios en pesos chilenos tomados de las páginas indicadas en cada ítem, en la fecha que aparece. Pueden haber cambiado.</p>
+      <p>Proyecto independiente, sin afiliación con las marcas ni tiendas mencionadas.</p>
+    </footer>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="sr-live" class="sr-only" aria-live="polite"></div>
+
+    <dialog id="dlg-help" aria-labelledby="help-title">
+      <div class="dlg">
+        <button type="button" class="dlg-close icon-btn" aria-label="Cerrar"></button>
+        <h2 id="help-title">Cómo jugar</h2>
+        <p>Arriba ves algo con su precio. Abajo, otra cosa con el precio oculto.</p>
+        <p>¿La de abajo sale <strong>más cara</strong> o <strong>más barata</strong>? También puedes usar las flechas <kbd>↑</kbd> <kbd>↓</kbd> del teclado.</p>
+        <h3 class="dlg-sub">Diario</h3>
+        <p>10 comparaciones, las mismas para todos. Se juega una vez al día.</p>
+        <h3 class="dlg-sub">Infinito</h3>
+        <p>Sigues hasta el primer error. Se guarda tu récord.</p>
+        <p class="muted small">Todos los precios son reales y tienen su fuente y fecha bajo cada ítem. Si dos cosas cuestan lo mismo, cualquier respuesta vale.</p>
+        <button type="button" class="btn btn-primary btn-block" data-close>Jugar</button>
+      </div>
+    </dialog>
+
+    <dialog id="dlg-stats" aria-labelledby="stats-title">
+      <div class="dlg">
+        <button type="button" class="dlg-close icon-btn" aria-label="Cerrar"></button>
+        <h2 id="stats-title">Estadísticas</h2>
+        <div id="stats-body"></div>
+      </div>
+    </dialog>
+
+    <dialog id="dlg-settings" aria-labelledby="settings-title">
+      <div class="dlg">
+        <button type="button" class="dlg-close icon-btn" aria-label="Cerrar"></button>
+        <h2 id="settings-title">Ajustes</h2>
+        <fieldset class="setting">
+          <legend>Tema</legend>
+          <div class="seg" role="radiogroup">
+            <label><input type="radio" name="theme" value="auto" /> <span>Automático</span></label>
+            <label><input type="radio" name="theme" value="light" /> <span>Claro</span></label>
+            <label><input type="radio" name="theme" value="dark" /> <span>Oscuro</span></label>
+          </div>
+        </fieldset>
+        <label class="setting setting-row">
+          <span>
+            <strong>Vibración</strong>
+            <small class="muted">Una vibración corta al responder, en celulares que la tienen.</small>
+          </span>
+          <input type="checkbox" id="opt-haptics" class="switch" />
+        </label>
+        <p class="muted small" id="data-version"></p>
+      </div>
+    </dialog>
+
+    <script type="module" src="/src/caro/main.ts"></script>
+  </body>
+</html>

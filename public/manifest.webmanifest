@@ -7,8 +7,8 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#121414",
-  "theme_color": "#6AAA64",
+  "background_color": "#F4F1EA",
+  "theme_color": "#F2C230",
   "icons": [
     {
       "src": "/icon-192.png",
@@ -37,6 +37,11 @@
       "name": "Microdle",
       "url": "/micro/",
       "description": "Adivina la micro del día por su trazado"
+    },
+    {
+      "name": "¿Qué sale más caro?",
+      "url": "/caro/",
+      "description": "Más caro o más barato: precios de cosas en Chile"
     }
   ]
 }

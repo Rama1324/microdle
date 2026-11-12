@@ -1,0 +1,373 @@
+/* =====================================================================
+   ¿Qué sale más caro? · solo usa variables de src/shared/tokens.css
+   ===================================================================== */
+body[data-game='caro'] {
+  --accent: var(--caro);
+  --accent-ink: var(--caro-ink);
+}
+.caro-brand {
+  font-size: var(--fs-4);
+  white-space: normal;
+  text-align: center;
+}
+@media (max-width: 419px) {
+  .caro-brand {
+    font-size: var(--fs-3);
+  }
+}
+
+/* ---------- Barra de juego ---------- */
+.gamebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-4);
+  border-bottom: var(--hair) solid var(--line-soft);
+  max-width: var(--page-max);
+  width: 100%;
+  margin: 0 auto;
+}
+.progress {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-family: var(--font-num);
+  font-size: var(--fs-2);
+  font-weight: var(--w-strong);
+  min-width: 0;
+}
+.ticks {
+  display: inline-flex;
+  gap: 2px;
+}
+.tick {
+  width: 10px;
+  height: 14px;
+  border: var(--hair) solid var(--ink);
+  border-radius: var(--r-1);
+}
+.tick.ok {
+  background: var(--ok);
+}
+.tick.bad {
+  background: var(--bad);
+}
+.tick.now {
+  background: var(--ink);
+}
+
+/* ---------- Duelo ---------- */
+.caro {
+  flex: 1;
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--s-3) var(--s-4) var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.duel {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: var(--s-3);
+  outline: none;
+}
+.side {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--s-1);
+  min-height: 150px;
+  padding: var(--s-4);
+  border: var(--rule) solid var(--ink);
+  border-radius: var(--r-2);
+  background: var(--surface);
+  color: var(--ink);
+  transition:
+    background var(--t-base),
+    color var(--t-base);
+}
+.side-a {
+  background: var(--bg);
+}
+.cat {
+  color: var(--ink-2);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+.cat .ico {
+  font-size: var(--fs-3);
+  letter-spacing: 0;
+}
+.name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--w-display);
+  font-size: var(--fs-4);
+  line-height: var(--lh-tight);
+}
+.price {
+  margin: 0;
+  font-size: var(--fs-7);
+  font-weight: var(--w-strong);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.price.hidden-price {
+  color: var(--ink-2);
+}
+.src {
+  margin: 0;
+  font-size: var(--fs-1);
+  color: var(--ink-2);
+  min-height: 1.5em;
+}
+.src a {
+  color: inherit;
+}
+.verdict {
+  align-self: flex-start;
+  margin: var(--s-1) 0;
+  padding: var(--s-1) var(--s-2);
+  border: var(--rule) solid var(--on-feedback);
+  border-radius: var(--r-1);
+  color: var(--on-feedback);
+}
+.side-b.is-ok {
+  background: var(--ok);
+  color: var(--on-feedback);
+}
+.side-b.is-bad {
+  background: var(--bad);
+  color: var(--on-feedback);
+}
+.side-b.is-ok .cat,
+.side-b.is-ok .src,
+.side-b.is-bad .cat,
+.side-b.is-bad .src {
+  color: var(--on-feedback);
+}
+.vs {
+  position: absolute;
+  right: var(--s-5);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: var(--hit);
+  height: var(--hit);
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-round);
+  border: var(--rule) solid var(--ink);
+  background: var(--caro);
+  color: var(--on-feedback);
+  font-family: var(--font-num);
+  font-weight: var(--w-strong);
+  font-size: var(--fs-2);
+}
+
+/* Transición al avanzar: B sube a la posición de A y entra un B nuevo */
+.duel.enter .side-a {
+  animation: from-b var(--t-slide) var(--ease-out) both;
+}
+.duel.enter .side-b {
+  animation: slide-in var(--t-slide) var(--ease-out) both;
+}
+@keyframes from-b {
+  from {
+    transform: translateY(calc(100% + var(--s-3)));
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes slide-in {
+  from {
+    transform: translateY(var(--s-6));
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* ---------- Controles ---------- */
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.phrase {
+  margin: 0;
+  min-height: 3em;
+  font-size: var(--fs-2);
+  font-weight: var(--w-strong);
+  text-align: center;
+}
+.answer-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
+}
+.btn-big {
+  min-height: 56px;
+  font-family: var(--font-display);
+  font-weight: var(--w-display);
+  font-size: var(--fs-3);
+  letter-spacing: 0.02em;
+}
+.btn-higher {
+  background: var(--caro);
+  color: var(--on-feedback);
+}
+.btn-next {
+  width: 100%;
+  background: var(--ink);
+  color: var(--bg);
+}
+
+/* ---------- Fin: boleta ---------- */
+.end,
+.soon {
+  background: var(--surface);
+  border: var(--rule) solid var(--ink);
+  border-radius: var(--r-2);
+  padding: var(--s-4);
+}
+.end[hidden],
+.soon[hidden] {
+  display: none;
+}
+.receipt-head {
+  display: flex;
+  justify-content: space-between;
+  color: var(--ink-2);
+  padding-bottom: var(--s-3);
+  border-bottom: var(--rule) dashed var(--line);
+}
+.score {
+  margin: var(--s-3) 0 0;
+  font-family: var(--font-num);
+  font-size: var(--fs-7);
+  font-weight: var(--w-strong);
+  line-height: 1;
+  color: var(--accent-ink);
+}
+.score small {
+  font-size: var(--fs-5);
+  color: var(--ink-2);
+}
+.score-note {
+  margin: var(--s-1) 0 var(--s-3);
+  font-weight: var(--w-strong);
+}
+.lines {
+  list-style: none;
+  margin: var(--s-4) 0 0;
+  padding: var(--s-2) 0;
+  border-top: var(--rule) dashed var(--line);
+  border-bottom: var(--rule) dashed var(--line);
+  display: grid;
+  gap: var(--s-1);
+  font-size: var(--fs-2);
+}
+.lines li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--s-2);
+  align-items: baseline;
+}
+.lines .mark {
+  font-family: var(--font-num);
+  font-weight: var(--w-strong);
+}
+.lines .mark.ok {
+  color: var(--ok-ink);
+}
+.lines .mark.bad {
+  color: var(--bad-ink);
+}
+.lines .vs-txt {
+  min-width: 0;
+}
+.lines .amt {
+  font-family: var(--font-num);
+  white-space: nowrap;
+}
+.end-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--s-4);
+}
+.soon h2 {
+  margin: 0 0 var(--s-2);
+  font-family: var(--font-display);
+  font-weight: var(--w-display);
+}
+
+/* ---------- Escritorio: lado a lado ---------- */
+@media (min-width: 800px) {
+  .caro-brand {
+    font-size: var(--fs-5);
+  }
+  .duel {
+    grid-template-rows: none;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s-5);
+  }
+  .side {
+    min-height: 280px;
+    padding: var(--s-5);
+  }
+  .name {
+    font-size: var(--fs-5);
+  }
+  .vs {
+    right: auto;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .controls {
+    max-width: 560px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .end,
+  .soon {
+    max-width: 560px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  @keyframes from-b {
+    from {
+      transform: translateX(calc(100% + var(--s-5)));
+    }
+    to {
+      transform: none;
+    }
+  }
+}
+
+/* Pantallas bajas: compactar para que los botones queden a la vista */
+@media (max-height: 700px) and (max-width: 799px) {
+  .side {
+    min-height: 120px;
+    padding: var(--s-3);
+  }
+  .price {
+    font-size: var(--fs-6);
+  }
+  .phrase {
+    min-height: 2.5em;
+  }
+}

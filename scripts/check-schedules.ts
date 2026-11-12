@@ -10,6 +10,9 @@ import { existsSync, readFileSync } from 'node:fs';
 import { entryForDay, type ScheduleFile } from '../src/shared/schedule';
 import { MICRO_SALT, microDayIndex } from '../src/micro/game/daily';
 import type { RoutesFile } from '../src/micro/types';
+import { CARO_EPOCH, CARO_SALT, decodeRef } from '../src/caro/game';
+import type { CaroItemsFile } from '../src/caro/types';
+import { dayIndex } from '../src/shared/time';
 
 const MIN_DAYS = 14;
 const WARN_DAYS = 60;
@@ -40,5 +43,26 @@ function checkMicro() {
   if (!failed) console.log(`✓ micro: schedule OK (${left} días por delante, congelado hasta el día ${s.frozenThrough})`);
 }
 
+function checkCaro() {
+  const sPath = 'public/caro/schedule.json';
+  const iPath = 'public/caro/items.json';
+  if (!existsSync(sPath)) return fail(`Falta ${sPath}. Corre "npm run caro".`);
+  const s: ScheduleFile = JSON.parse(readFileSync(sPath, 'utf8'));
+  const items: CaroItemsFile = JSON.parse(readFileSync(iPath, 'utf8'));
+  const ids = new Set(items.items.map((i) => i.id));
+  const today = dayIndex(CARO_EPOCH);
+  const left = s.days.length - 1 - today;
+  if (left < MIN_DAYS) fail(`caro: el schedule solo cubre ${left} días desde hoy (mínimo ${MIN_DAYS}). Corre "npm run caro".`);
+  else if (left < WARN_DAYS) console.warn(`⚠ caro: quedan ${left} días de schedule. Corre "npm run caro" pronto.`);
+  for (let d = 0; d <= Math.min(s.frozenThrough, s.days.length - 1); d++) {
+    for (const ref of entryForDay(s, d, CARO_SALT) ?? []) {
+      const { id } = decodeRef(ref);
+      if (!ids.has(id)) fail(`caro: el día ${d} usa "${id}", que ya no está publicado (no lo des de baja mientras esté en un día congelado)`);
+    }
+  }
+  if (!failed) console.log(`✓ caro: schedule OK (${left} días por delante, congelado hasta el día ${s.frozenThrough})`);
+}
+
 checkMicro();
+checkCaro();
 if (failed) process.exit(1);

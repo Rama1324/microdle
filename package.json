@@ -6,7 +6,7 @@
   "description": "Hub de juegos diarios chilenos: Microdle y más.",
   "scripts": {
     "dev": "vite",
-    "prebuild": "tsx scripts/check-schedules.ts",
+    "prebuild": "tsx scripts/validate-caro.ts && tsx scripts/check-schedules.ts",
     "build": "tsc --noEmit && vite build",
     "postbuild": "tsx scripts/check-dist.ts",
     "preview": "vite preview",
@@ -15,7 +15,8 @@
     "schedule": "tsx scripts/schedule.ts",
     "assets": "tsx scripts/build-assets.ts",
     "typecheck": "tsc --noEmit",
-    "fonts": "tsx scripts/copy-fonts.ts"
+    "fonts": "tsx scripts/copy-fonts.ts",
+    "caro": "tsx scripts/validate-caro.ts && tsx scripts/schedule.ts --game caro"
   },
   "dependencies": {
     "@maplibre/maplibre-gl-leaflet": "^0.1.4",

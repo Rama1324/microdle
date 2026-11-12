@@ -3,23 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>%SITE_NAME% — juegos diarios chilenos</title>
+    <title>%SITE_NAME% — un juego chileno al día</title>
     <meta name="description" content="%SITE_DESCRIPTION%" />
-    <meta name="theme-color" content="#f7f7f5" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#121414" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f4f1ea" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121417" media="(prefers-color-scheme: dark)" />
     <link rel="canonical" href="%SITE_URL%/" />
 
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="es_CL" />
     <meta property="og:site_name" content="%SITE_NAME%" />
-    <meta property="og:title" content="%SITE_NAME% — juegos diarios chilenos" />
+    <meta property="og:title" content="%SITE_NAME% — un juego chileno al día" />
     <meta property="og:description" content="%SITE_DESCRIPTION%" />
     <meta property="og:url" content="%SITE_URL%/" />
     <meta property="og:image" content="%SITE_URL%/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="%SITE_NAME% — juegos diarios chilenos" />
+    <meta name="twitter:title" content="%SITE_NAME% — un juego chileno al día" />
     <meta name="twitter:description" content="%SITE_DESCRIPTION%" />
     <meta name="twitter:image" content="%SITE_URL%/og.png" />
 
@@ -27,28 +27,29 @@
     <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
-
     <link rel="preload" href="/fonts/chivo-latin-wght.woff2" as="font" type="font/woff2" crossorigin />
 
     <!-- theme-script -->
   </head>
-  <body>
+  <body data-game="hub">
     <header class="top">
       <div class="top-side"></div>
-      <h1 class="brand">%SITE_NAME%</h1>
+      <h1 class="brand"><span class="brand-dot" aria-hidden="true"></span>%SITE_NAME%</h1>
       <div class="top-side right">
         <button type="button" class="icon-btn" id="btn-theme" aria-label="Cambiar tema"></button>
       </div>
     </header>
+    <div class="strip" id="strip"><span id="today"></span><span id="hub-streak" aria-live="polite"></span></div>
 
     <main class="hub">
-      <p class="hub-intro">%SITE_DESCRIPTION%</p>
-      <div class="hub-streak" id="hub-streak" aria-live="polite"></div>
+      <h2 class="hub-title">Un juego al día.</h2>
+      <p class="hub-sub">Sin cuentas ni anuncios. Mañana hay otro.</p>
       <ul class="hub-cards" id="hub-cards" aria-label="Juegos"></ul>
     </main>
 
     <footer class="foot">
-      <p>Proyecto independiente. Microdle no tiene afiliación con DTPM ni Red Movilidad. Datos: GTFS DTPM, mapas © OpenStreetMap / CARTO.</p>
+      <p>Proyecto independiente, sin afiliación con DTPM, Red Movilidad ni las marcas y tiendas mencionadas.</p>
+      <p>Datos: GTFS DTPM · mapas © OpenStreetMap / CARTO · precios con su fuente en cada ítem.</p>
     </footer>
 
     <script type="module" src="/src/hub/main.ts"></script>

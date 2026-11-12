@@ -27,12 +27,13 @@ export default defineConfig({
   build: {
     target: 'es2020',
     sourcemap: false,
-    // MapLibre (~220 KB gzip) se carga bajo demanda solo en el tema oscuro de Microdle
+    // MapLibre (~220 KB gzip) se carga bajo demanda solo en el tema oscuro de Microdle (nunca en / ni /caro)
     chunkSizeWarningLimit: 900,
     rollupOptions: {
       input: {
         hub: resolve(__dirname, 'index.html'),
         micro: resolve(__dirname, 'micro/index.html'),
+        caro: resolve(__dirname, 'caro/index.html'),
       },
     },
   },

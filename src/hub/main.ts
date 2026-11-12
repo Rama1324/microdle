@@ -1,11 +1,13 @@
 import '../shared/base.css';
 import './hub.css';
-import { GAMES, type GameId } from '../shared/config';
-import { globalStreak, playedToday } from '../shared/activity';
+import { GAMES } from '../shared/config';
+import { globalStreak } from '../shared/activity';
 import { getThemeSetting, initTheme, setThemeSetting, type ThemeSetting } from '../shared/theme';
-import { dayIndex, puzzleNumber } from '../shared/time';
-import { icons, logoSvg } from '../shared/ui/icons';
+import { dayIndex, puzzleNumber, santiagoISO } from '../shared/time';
+import { icons } from '../shared/ui/icons';
 import { loadDaily } from '../micro/state';
+import { loadCaroDaily } from '../caro/state';
+import { DAILY_ROUNDS } from '../caro/types';
 
 const $ = (id: string) => document.getElementById(id)!;
 
@@ -26,54 +28,66 @@ $('btn-theme').addEventListener('click', () => {
   paintThemeBtn();
 });
 
-// ---------- racha global ----------
+// ---------- franja: fecha y racha ----------
+const fecha = new Intl.DateTimeFormat('es-CL', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })
+  .format(new Date(`${santiagoISO()}T12:00:00Z`))
+  .replace(/\./g, '')
+  .toUpperCase();
+$('today').textContent = fecha;
 const streak = globalStreak();
-$('hub-streak').innerHTML =
-  streak > 0
-    ? `<span class="hub-streak-n">🔥 ${streak}</span> ${streak === 1 ? 'día seguido' : 'días seguidos'} jugando`
-    : 'Juega cualquier diario para empezar tu racha';
+$('hub-streak').textContent = streak > 0 ? `${streak} ${streak === 1 ? 'día seguido' : 'días seguidos'}` : 'Empieza tu racha hoy';
 
 // ---------- tarjetas ----------
-/** Juegos ya publicados (los demás se muestran como "Próximamente") */
-const LIVE: GameId[] = ['micro'];
-
-/** Estado del día de un juego. Si algo falla, la tarjeta igual se muestra (sin estado). */
-function statusFor(id: GameId): string {
+/** Estado del día; si algo falla al leer, la tarjeta igual se muestra (sin estado). */
+function safe<T>(fn: () => T, fallback: T): T {
   try {
-    return statusForUnsafe(id);
+    return fn();
   } catch (e) {
-    console.warn(`[la-once] No se pudo leer el estado de ${id}`, e);
-    return '';
+    console.warn('[la-once] No se pudo leer el estado de un juego', e);
+    return fallback;
   }
 }
 
-function statusForUnsafe(id: GameId): string {
-  if (!LIVE.includes(id)) return '<span class="card-status soon">Próximamente</span>';
-  const g = GAMES[id];
-  const n = puzzleNumber(dayIndex(g.epoch));
-  if (id === 'micro') {
-    const d = loadDaily(dayIndex(g.epoch));
-    if (d.status === 'won') return `<span class="card-status done">✓ #${n} resuelto en ${d.guesses.length}/6</span>`;
-    if (d.status === 'lost') return `<span class="card-status done">✓ #${n} jugado</span>`;
-    if (d.guesses.length) return `<span class="card-status">#${n} en curso · ${d.guesses.length}/6</span>`;
-  }
-  if (playedToday(id)) return `<span class="card-status done">✓ #${n} jugado</span>`;
-  return `<span class="card-status todo">#${n} disponible</span>`;
+function microCard(): string {
+  const g = GAMES.micro;
+  const day = dayIndex(g.epoch);
+  const n = puzzleNumber(day);
+  const d = safe(() => loadDaily(day), null);
+  let status = `#${n} · por jugar`;
+  if (d?.status === 'won') status = `✓ #${n} · resuelto en ${d.guesses.length}/6`;
+  else if (d?.status === 'lost') status = `✓ #${n} · jugado`;
+  else if (d?.guesses.length) status = `#${n} · en curso ${d.guesses.length}/6`;
+  return `
+    <li class="card card-micro">
+      <a class="card-link" href="${g.path}/">
+        <span class="plate" aria-hidden="true"><span class="plate-n">#${n}</span><span class="plate-k">MICRO</span></span>
+        <span class="card-body">
+          <span class="card-title">${g.title}</span>
+          <span class="card-tag">¿Qué micro hace este recorrido?</span>
+          <span class="card-status label">${status}</span>
+        </span>
+      </a>
+    </li>`;
 }
 
-$('hub-cards').innerHTML = (Object.keys(GAMES) as GameId[])
-  .map((id) => {
-    const g = GAMES[id];
-    const live = LIVE.includes(id);
-    const inner = `
-      <span class="card-icon" aria-hidden="true">${id === 'micro' ? logoSvg(44) : '💸'}</span>
-      <span class="card-body">
-        <span class="card-title">${g.title}</span>
-        <span class="card-tag">${g.tagline}</span>
-        ${statusFor(id)}
-      </span>`;
-    return `<li class="card" style="--card-accent:${g.accent}">${
-      live ? `<a class="card-link" href="${g.path}/">${inner}</a>` : `<div class="card-link is-disabled" aria-disabled="true">${inner}</div>`
-    }</li>`;
-  })
-  .join('');
+function caroCard(): string {
+  const g = GAMES.caro;
+  const day = dayIndex(g.epoch);
+  const n = puzzleNumber(day);
+  const d = safe(() => loadCaroDaily(day), null);
+  const score = d ? d.results.filter(Boolean).length : 0;
+  const done = d?.status === 'done';
+  const playing = !done && (d?.results.length ?? 0) > 0;
+  const status = done ? `✓ #${n} · ${score}/${DAILY_ROUNDS}` : playing ? `#${n} · en curso ${d!.results.length}/${DAILY_ROUNDS}` : `#${n} · por jugar`;
+  return `
+    <li class="card card-caro">
+      <a class="card-link receipt" href="${g.path}/">
+        <span class="receipt-top label"><span>${g.title}</span><span>N° ${String(n).padStart(4, '0')}</span></span>
+        <span class="receipt-row"><span>Más caro</span><span>↑</span></span>
+        <span class="receipt-row"><span>Más barato</span><span>↓</span></span>
+        <span class="receipt-total"><span class="card-status label">${status}</span><span class="receipt-amt">$ ???</span></span>
+      </a>
+    </li>`;
+}
+
+$('hub-cards').innerHTML = microCard() + caroCard();

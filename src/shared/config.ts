@@ -31,7 +31,7 @@ export const GAMES = {
     title: '¿Qué sale más caro?',
     tagline: 'Más caro o más barato: precios de cosas en Chile',
     accent: '#E07A3F',
-    epoch: '2026-11-12',
+    epoch: '2026-11-11',
   },
 } as const;
 
