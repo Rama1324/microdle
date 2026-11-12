@@ -1,6 +1,6 @@
 /**
  * Contraste WCAG 2.x de todos los pares de tokens de color, calculado a partir de
- * los valores REALES de src/shared/base.css (tema claro y oscuro).
+ * los valores REALES de src/shared/tokens.css (tema claro y oscuro).
  * Si alguien cambia un token y baja de AA, este test falla.
  */
 import { test } from 'node:test';
@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 // ---------- lectura de tokens ----------
-const css = readFileSync('src/shared/base.css', 'utf8');
+const css = readFileSync('src/shared/tokens.css', 'utf8');
 
 function block(selectorRe: RegExp): Record<string, string> {
   const m = css.match(selectorRe);
@@ -44,16 +44,29 @@ const TEXT = 4.5; // texto normal (AA)
 const UI = 3; // límites de controles, foco, gráficos (WCAG 1.4.11)
 
 const PAIRS: [fg: string, bg: string, min: number, uso: string][] = [
-  ['text', 'bg', TEXT, 'texto principal'],
-  ['text', 'surface', TEXT, 'texto en tarjetas y diálogos'],
-  ['muted', 'bg', TEXT, 'texto secundario'],
-  ['muted', 'surface', TEXT, 'texto secundario en tarjetas'],
-  ['bg', 'text', TEXT, 'toast (texto invertido)'],
-  ['on-color', 'green', TEXT, 'celda ✓ y botón principal'],
-  ['on-color', 'yellow', TEXT, 'celda ≈ y aviso de micro nueva'],
-  ['on-color', 'gray', TEXT, 'celda ✗ y barras de distribución'],
+  ['ink', 'bg', TEXT, 'texto principal'],
+  ['ink', 'surface', TEXT, 'texto en tarjetas y diálogos'],
+  ['ink', 'empty', TEXT, 'texto sobre fondos neutros (hover, chips)'],
+  ['ink-2', 'bg', TEXT, 'texto secundario'],
+  ['ink-2', 'surface', TEXT, 'texto secundario en tarjetas'],
+  ['bg', 'ink', TEXT, 'texto invertido (toast, tab activa, botón Siguiente)'],
+  ['on-sign', 'sign', TEXT, 'franja amarilla y avisos'],
+  ['on-plate', 'sign-plate', TEXT, 'placa del letrero (número de micro)'],
+  ['micro', 'sign-plate', TEXT, 'etiqueta MICRO en la placa'],
+  ['on-feedback', 'ok', TEXT, '✓ acierto, botón principal de Microdle'],
+  ['on-feedback', 'near', TEXT, '≈ cerca'],
+  ['on-feedback', 'miss', TEXT, '✗ en Microdle, barras de distribución'],
+  ['on-feedback', 'bad', TEXT, '✗ error en Caro'],
+  ['on-feedback', 'caro', TEXT, 'botón MÁS CARO y VS'],
+  ['micro-ink', 'bg', TEXT, 'acento Microdle como texto'],
+  ['micro-ink', 'surface', TEXT, 'acento Microdle como texto en tarjetas'],
+  ['caro-ink', 'bg', TEXT, 'acento Caro como texto'],
+  ['caro-ink', 'surface', TEXT, 'acento Caro como texto en tarjetas'],
+  ['ok-ink', 'surface', TEXT, '✓ en la boleta final'],
+  ['bad-ink', 'surface', TEXT, '✗ en la boleta final'],
   ['line', 'bg', UI, 'borde de controles sobre el fondo'],
   ['line', 'surface', UI, 'borde del input sobre su superficie'],
+  ['ink', 'bg', UI, 'filetes de letrero'],
   ['focus', 'bg', UI, 'anillo de foco'],
   ['focus', 'surface', UI, 'anillo de foco en diálogos'],
   ['route', 'map-bg', UI, 'línea del recorrido sin mapa base'],

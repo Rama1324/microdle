@@ -1,0 +1,178 @@
+/* =====================================================================
+   La Once · sistema de diseño "Letrero"
+   ÚNICA fuente de colores, tipografía, espacios, radios y tiempos.
+   Ningún otro CSS define colores o tamaños sueltos: todo usa estas variables.
+   El contraste de los pares de color se verifica en tests/contrast.test.ts.
+   ===================================================================== */
+
+/* ---------- Fuentes (self-hosted, OFL; ver scripts/copy-fonts.ts) ---------- */
+@font-face {
+  font-family: 'Chivo';
+  src: url('/fonts/chivo-latin-wght.woff2') format('woff2-variations'), url('/fonts/chivo-latin-wght.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Chivo Mono';
+  src: url('/fonts/chivo-mono-latin-wght.woff2') format('woff2-variations'), url('/fonts/chivo-mono-latin-wght.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* Fallbacks con métricas medidas en el navegador: el swap no mueve el layout */
+@font-face {
+  font-family: 'Chivo Fallback';
+  src: local('Arial'), local('Helvetica Neue'), local('Helvetica');
+  size-adjust: 104%;
+  ascent-override: 90%;
+  descent-override: 24%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Chivo Mono Fallback';
+  src: local('Courier New'), local('Courier');
+  size-adjust: 100%;
+  ascent-override: 94%;
+  descent-override: 25%;
+  line-gap-override: 0%;
+}
+
+:root {
+  /* ---------- Tipografía ---------- */
+  --font-display: 'Chivo', 'Chivo Fallback', system-ui, sans-serif;
+  --font-text: 'Chivo', 'Chivo Fallback', system-ui, sans-serif;
+  /* números tabulares: número de micro, km, precios, cuenta regresiva */
+  --font-num: 'Chivo Mono', 'Chivo Mono Fallback', ui-monospace, monospace;
+
+  /* escala (razón ~1.25). Mínimo 12px y solo para metadatos */
+  --fs-1: 0.75rem; /* 12 · metadatos, etiquetas */
+  --fs-2: 0.875rem; /* 14 · texto secundario */
+  --fs-3: 1rem; /* 16 · texto */
+  --fs-4: 1.25rem; /* 20 · subtítulos, celdas */
+  --fs-5: 1.5rem; /* 24 · números destacados */
+  --fs-6: 2rem; /* 32 · títulos */
+  --fs-7: 2.75rem; /* 44 · precio, número de micro */
+
+  --w-text: 400;
+  --w-strong: 700;
+  --w-display: 900;
+  --lh-tight: 1.1;
+  --lh-text: 1.5;
+  --track-label: 0.08em; /* etiquetas en mayúscula */
+
+  /* ---------- Espaciado (base 4) ---------- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+
+  /* ---------- Forma ---------- */
+  --r-1: 2px;
+  --r-2: 4px;
+  --r-3: 8px;
+  --r-round: 999px;
+  --rule: 2px; /* filete de letrero */
+  --hair: 1px; /* separador suave */
+  --hit: 44px; /* objetivo táctil mínimo */
+  --header-h: 56px;
+  --measure: 65ch;
+  --page-max: 1180px;
+  --col-max: 400px;
+
+  /* ---------- Movimiento ---------- */
+  --t-fast: 120ms;
+  --t-base: 220ms;
+  --t-slide: 320ms;
+  --flip-ms: 450ms;
+  --flip-stagger: 180ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ---------- Capas ---------- */
+  --z-map: 0;
+  --z-sticky: 900;
+  --z-header: 1000;
+  --z-popover: 1200;
+  --z-toast: 3000;
+
+  /* ---------- Color · claro "papel" ---------- */
+  --bg: #f4f1ea;
+  --surface: #fffdf8;
+  --ink: #17191b;
+  --ink-2: #696d71; /* texto secundario */
+  --line: #878a8b; /* bordes de controles (≥3:1, WCAG 1.4.11) */
+  --line-soft: #e2ddd1; /* separadores decorativos */
+  --empty: #eae5da; /* fondos neutros: tabs, chips */
+  --focus: #1f5fd0;
+  --overlay: rgba(23, 25, 27, 0.55);
+
+  --sign: #f2c230; /* amarillo letrero: orientación (fecha, número del día) */
+  --on-sign: #17191b;
+  --micro: #6aaa64; /* acento Microdle (fondos) */
+  --micro-ink: #4b7947; /* acento Microdle (texto y bordes) */
+  --caro: #e07a3f; /* acento Caro (fondos) */
+  --caro-ink: #a65a2f; /* acento Caro (texto y bordes) */
+
+  /* feedback: siempre con símbolo además del color */
+  --on-feedback: #101213;
+  --ok: #6aaa64;
+  --near: #c9b458;
+  --miss: #7b7f81;
+  --bad: #d9534a;
+  --bad-ink: #bb4740;
+  --ok-ink: #4b7947;
+
+  /* mapa */
+  --map-bg: #ece8de;
+  --map-dot: #d6d0c2;
+  --route: #17191b;
+  --route-casing: #fffdf8;
+  --route-final: #3f8a39;
+  --sign-plate: #17191b; /* placa negra del letrero (igual en ambos temas) */
+  --on-plate: #f2c230;
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  /* ---------- Color · oscuro "asfalto" ---------- */
+  --bg: #121417;
+  --surface: #1b1e22;
+  --ink: #f1eee7;
+  --ink-2: #9ea3a8;
+  --line: #646a6f;
+  --line-soft: #2a2e33;
+  --empty: #23272c;
+  --focus: #8db4ff;
+  --overlay: rgba(0, 0, 0, 0.65);
+
+  --micro-ink: #6aaa64;
+  --caro-ink: #e07a3f;
+  --bad-ink: #db5c53;
+  --ok-ink: #7cc275;
+
+  --map-bg: #16191c;
+  --map-dot: #262a2f;
+  --route: #f1eee7;
+  --route-casing: #121417;
+  --route-final: #7cc275;
+  --sign-plate: #0b0c0d;
+
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-fast: 0ms;
+    --t-base: 0ms;
+    --t-slide: 0ms;
+    --flip-ms: 0ms;
+    --flip-stagger: 0ms;
+  }
+}

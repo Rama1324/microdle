@@ -16,10 +16,12 @@ const MARK: Record<CellState, string> = { all: '✓', some: '≈', none: '✗', 
 
 export const COLUMNS = ['Micro', 'Traza', 'Distancia', 'Comunas', 'Zona'];
 
-/** Duración del flip por celda y desfase entre celdas (ms). Debe calzar con styles.css. */
-export const FLIP_MS = 500;
-export const FLIP_STAGGER = 220;
-export const ROW_REVEAL_MS = FLIP_STAGGER * (COLUMNS.length - 1) + FLIP_MS;
+/** Duración del flip por celda y desfase entre celdas (ms). Deben calzar con --flip-ms y --flip-stagger de tokens.css. */
+export const FLIP_MS = 450;
+export const FLIP_STAGGER = 180;
+const reduced = () => typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+/** Espera hasta que termina de voltearse la fila. Con movimiento reducido no hay espera. */
+export const rowRevealMs = () => (reduced() ? 0 : FLIP_STAGGER * (COLUMNS.length - 1) + FLIP_MS);
 
 function cellsFor(f: Feedback): Cell[] {
   const ov = f.correct ? 'all' : overlapLevel(f.overlap);
@@ -34,7 +36,7 @@ function cellsFor(f: Feedback): Cell[] {
     },
     { main: `${f.overlap}%`, state: ov, label: `Superposición del trazado ${f.overlap} por ciento` },
     {
-      main: f.correct ? '🎯' : f.arrow,
+      main: f.correct ? '◎' : f.arrow,
       sub: f.correct ? '0km' : formatKm(f.distKm),
       state: distState,
       label: f.correct

@@ -1,8 +1,16 @@
-/* ============ Layout ============ */
+/* =====================================================================
+   Microdle · solo usa variables de src/shared/tokens.css
+   ===================================================================== */
+body[data-game='micro'] {
+  --accent: var(--micro);
+  --accent-ink: var(--micro-ink);
+}
+
+/* ---------- Layout ---------- */
 .layout {
   flex: 1;
   width: 100%;
-  max-width: 1180px;
+  max-width: var(--page-max);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -12,13 +20,12 @@
   height: 45vh;
   height: 45dvh;
   min-height: 240px;
-  margin: 0 16px;
-  border-radius: 14px;
+  margin: 0 var(--s-4);
+  border: var(--rule) solid var(--ink);
+  border-radius: var(--r-2);
   overflow: hidden;
-  border: 1px solid var(--border);
   background: var(--map-bg);
-  /* Encierra los z-index de Leaflet (400–1000) para que no tapen el header,
-     la barra de respuesta ni la lista de sugerencias */
+  /* Encierra los z-index de Leaflet para que no tapen header, barra ni sugerencias */
   isolation: isolate;
 }
 #map {
@@ -31,52 +38,64 @@
   display: grid;
   place-items: center;
   text-align: center;
-  padding: 16px;
-  color: var(--muted);
-  font-weight: 600;
-  z-index: 500;
+  padding: var(--s-4);
+  color: var(--ink-2);
+  font-weight: var(--w-strong);
+  z-index: 1;
   background: var(--map-bg);
 }
+.map-tag {
+  position: absolute;
+  right: var(--s-2);
+  top: var(--s-2);
+  z-index: 1000;
+  pointer-events: none;
+  background: var(--surface);
+  color: var(--ink);
+  border: var(--rule) solid var(--ink);
+  border-radius: var(--r-1);
+  padding: var(--s-1) var(--s-2);
+}
 .panel {
-  padding: 10px 16px 16px;
+  padding: var(--s-3) var(--s-4) var(--s-4);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: var(--s-3);
   min-width: 0;
 }
 
 @media (min-width: 900px) {
   .layout {
     flex-direction: row;
-    gap: 24px;
-    padding: 0 16px;
+    gap: var(--s-5);
+    padding: 0 var(--s-4);
     align-items: flex-start;
   }
   .map-wrap {
     flex: 1.35;
     margin: 0;
-    height: calc(100dvh - 160px);
+    height: calc(100dvh - 180px);
     min-height: 460px;
     position: sticky;
-    top: 70px;
+    top: calc(var(--header-h) + var(--s-4));
   }
   .panel {
     flex: 1;
-    padding: 0 0 16px;
+    padding: 0 0 var(--s-4);
     max-width: 440px;
   }
 }
 
-/* ============ Mapa ============ */
+/* ---------- Mapa ---------- */
 .leaflet-container {
   background: var(--map-bg);
-  font-family: var(--font);
+  font-family: var(--font-text);
 }
 .leaflet-container.no-basemap {
   background-color: var(--map-bg);
-  background-image: radial-gradient(var(--map-dot) 1px, transparent 1.2px);
-  background-size: 18px 18px;
+  background-image: radial-gradient(var(--map-dot) 1px, transparent 1.4px);
+  background-size: var(--s-4) var(--s-4);
 }
 .route-casing {
   stroke: var(--route-casing);
@@ -89,60 +108,70 @@
   stroke: var(--route-final);
 }
 .guess-line {
-  stroke: var(--gray);
+  stroke: var(--miss);
   stroke-dasharray: 2 7;
-  stroke-opacity: 0.85;
+  stroke-opacity: 0.9;
 }
 .terminal-icon span {
   display: grid;
   place-items: center;
   width: 26px;
   height: 26px;
-  border-radius: 50%;
-  background: var(--text);
-  color: var(--bg);
-  font-weight: 800;
-  font-size: 13px;
-  border: 2px solid var(--bg);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  border-radius: var(--r-2);
+  background: var(--sign-plate);
+  color: var(--on-plate);
+  font-family: var(--font-num);
+  font-weight: var(--w-strong);
+  font-size: var(--fs-2);
+  border: var(--rule) solid var(--surface);
+}
+.leaflet-bar {
+  border: var(--rule) solid var(--ink) !important;
+  border-radius: var(--r-2) !important;
 }
 .leaflet-bar a,
 .map-btn {
   background: var(--surface) !important;
-  color: var(--text) !important;
-  border-color: var(--border) !important;
+  color: var(--ink) !important;
+  border-color: var(--ink) !important;
+}
+.leaflet-touch .leaflet-bar a {
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
 }
 .map-btn {
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
-  border-radius: 6px;
-  border: 2px solid var(--border);
+  border-radius: var(--r-2);
+  border: var(--rule) solid var(--ink);
   cursor: pointer;
   padding: 0;
 }
 .leaflet-control-attribution {
-  background: color-mix(in srgb, var(--surface) 80%, transparent) !important;
-  color: var(--muted) !important;
-  font-size: 10px;
+  background: var(--surface) !important;
+  color: var(--ink-2) !important;
+  font-size: var(--fs-1);
 }
 .leaflet-control-attribution a {
-  color: var(--text) !important;
+  color: var(--ink) !important;
 }
 .map-tip {
-  font-family: var(--font);
-  font-weight: 700;
+  font-family: var(--font-num);
+  font-weight: var(--w-strong);
   background: var(--surface);
-  color: var(--text);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
+  color: var(--ink);
+  border: var(--rule) solid var(--ink);
+  border-radius: var(--r-2);
+  box-shadow: none;
 }
 .leaflet-tooltip-top.map-tip::before {
-  border-top-color: var(--surface);
+  border-top-color: var(--ink);
 }
 
-/* ============ Pistas ============ */
+/* ---------- Pistas ---------- */
 .hints {
   list-style: none;
   margin: 0;
@@ -150,106 +179,118 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 6px;
+  gap: var(--s-1);
 }
 .hint {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 3px 9px;
-  border-radius: 999px;
-  border: 1px dashed var(--border);
-  color: var(--muted);
+  gap: var(--s-1);
+  font-family: var(--font-num);
+  font-size: var(--fs-1);
+  font-weight: var(--w-strong);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  padding: var(--s-1) var(--s-2);
+  border-radius: var(--r-1);
+  border: var(--hair) solid var(--line);
+  color: var(--ink-2);
+}
+.hint svg {
+  width: 12px;
+  height: 12px;
 }
 .hint.open {
-  border-style: solid;
-  border-color: var(--green);
-  color: var(--text);
+  border: var(--hair) solid var(--ink);
+  background: var(--surface);
+  color: var(--ink);
 }
 .hint-dot {
-  color: var(--route-final);
-  font-weight: 800;
+  color: var(--accent-ink);
 }
 .hint-detail {
   width: 100%;
-  max-width: 400px;
+  max-width: var(--col-max);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--s-2);
 }
 .hint-detail:empty {
   display: none;
 }
 .hint-row {
   display: flex;
-  gap: 8px;
+  gap: var(--s-2);
   align-items: baseline;
 }
 .hint-k {
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-family: var(--font-num);
+  font-size: var(--fs-1);
+  font-weight: var(--w-strong);
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-  min-width: 64px;
+  color: var(--ink-2);
+  min-width: var(--s-8);
 }
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: var(--s-1);
 }
 .chip {
-  font-size: 0.8rem;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background: var(--empty);
-  animation: pop 300ms ease both;
+  font-size: var(--fs-2);
+  padding: 0 var(--s-2);
+  border-radius: var(--r-1);
+  border: var(--hair) solid var(--line);
+  background: var(--surface);
+  animation: pop var(--t-base) var(--ease-out) both;
 }
 .chip-strong {
-  background: var(--yellow);
-  color: var(--on-color);
-  font-weight: 700;
+  background: var(--sign);
+  color: var(--on-sign);
+  border-color: var(--ink);
+  font-weight: var(--w-strong);
 }
 
-/* ============ Grilla ============ */
+/* ---------- Grilla ---------- */
 .grid {
   width: 100%;
   max-width: 360px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--s-1);
 }
 .grid-row {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 6px;
+  gap: var(--s-1);
 }
 .grid-label {
-  font-size: 0.66rem;
-  font-weight: 700;
+  font-family: var(--font-num);
+  font-size: var(--fs-1);
+  font-weight: var(--w-strong);
+  letter-spacing: 0.02em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
+  color: var(--ink-2);
   text-align: center;
+  white-space: nowrap;
 }
 .cell {
   --c: var(--surface);
-  --on-c: var(--text);
+  --on-c: var(--ink);
   position: relative;
   aspect-ratio: 1;
-  border-radius: var(--radius);
+  border-radius: var(--r-2);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   background: var(--c);
   color: var(--on-c);
-  border: 2px solid transparent;
-  font-weight: 800;
-  font-size: 1rem;
-  line-height: 1.1;
+  border: var(--rule) solid transparent;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--w-strong);
+  line-height: var(--lh-tight);
   user-select: none;
   min-width: 0;
 }
@@ -258,44 +299,41 @@
   border-color: var(--line);
 }
 .grid-row.is-next .cell.empty {
-  border-color: var(--muted);
+  border-color: var(--ink);
   border-style: dashed;
 }
 .cell.s-neutral {
-  border-color: var(--border);
+  border-color: var(--ink);
 }
 .cell.s-all {
-  --c: var(--green);
-  --on-c: var(--on-color);
+  --c: var(--ok);
+  --on-c: var(--on-feedback);
 }
 .cell.s-some {
-  --c: var(--yellow);
-  --on-c: var(--on-color);
+  --c: var(--near);
+  --on-c: var(--on-feedback);
 }
 .cell.s-none {
-  --c: var(--gray);
-  --on-c: var(--on-color);
+  --c: var(--miss);
+  --on-c: var(--on-feedback);
 }
 .cell-main {
-  font-size: 1.05rem;
+  font-size: var(--fs-3);
   white-space: nowrap;
 }
 .cell-sub {
-  font-size: 0.7rem;
-  font-weight: 700;
+  font-size: var(--fs-1);
   margin-top: 2px;
   white-space: nowrap;
 }
 .cell-mark {
   position: absolute;
-  top: 3px;
-  right: 6px;
-  font-size: 0.7rem;
-  font-weight: 800;
-  opacity: 0.85;
+  top: 2px;
+  right: var(--s-1);
+  font-size: var(--fs-1);
 }
 .cell.flip {
-  animation: flip var(--flip-ms) ease both;
+  animation: flip var(--flip-ms) var(--ease-out) both;
   animation-delay: calc(var(--i) * var(--flip-stagger));
 }
 @keyframes flip {
@@ -303,13 +341,13 @@
     transform: rotateX(0);
     background: var(--empty);
     color: transparent;
-    border-color: var(--border);
+    border-color: var(--line);
   }
   49.9% {
     transform: rotateX(90deg);
     background: var(--empty);
     color: transparent;
-    border-color: var(--border);
+    border-color: var(--line);
   }
   50% {
     transform: rotateX(90deg);
@@ -324,7 +362,7 @@
 }
 @keyframes pop {
   from {
-    transform: scale(0.85);
+    transform: scale(0.92);
     opacity: 0;
   }
   to {
@@ -332,13 +370,21 @@
     opacity: 1;
   }
 }
+/* Ejemplo del "Cómo jugar" */
+.help-example {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--s-1);
+  max-width: 300px;
+  margin: 0 auto var(--s-3);
+}
 
-/* ============ Input ============ */
+/* ---------- Input ---------- */
 .guess {
   width: 100%;
   max-width: 360px;
   display: flex;
-  gap: 8px;
+  gap: var(--s-2);
 }
 .guess[hidden] {
   display: none;
@@ -350,43 +396,48 @@
 }
 .combo input {
   width: 100%;
-  height: 48px;
-  border-radius: var(--radius);
-  border: 2px solid var(--line);
+  min-height: 48px;
+  border-radius: var(--r-2);
+  border: var(--rule) solid var(--line);
   background: var(--surface);
-  padding: 0 14px;
-  font-size: 1.1rem;
-  font-weight: 700;
+  padding: 0 var(--s-3);
+  font-family: var(--font-num);
+  font-size: var(--fs-4);
+  font-weight: var(--w-strong);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 .combo input::placeholder {
+  font-family: var(--font-text);
+  font-size: var(--fs-3);
   text-transform: none;
   letter-spacing: 0;
-  font-weight: 500;
-  color: var(--muted);
+  font-weight: var(--w-text);
+  color: var(--ink-2);
 }
 .combo input:focus {
-  border-color: var(--text);
+  border-color: var(--ink);
   outline: none;
 }
 .combo input:focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 1px;
 }
+.guess .btn {
+  min-height: 48px;
+}
 #suggestions {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: calc(100% + 6px);
+  bottom: calc(100% + var(--s-2));
   margin: 0;
-  padding: 4px;
+  padding: var(--s-1);
   list-style: none;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  z-index: 1200;
+  border: var(--rule) solid var(--ink);
+  border-radius: var(--r-2);
+  z-index: var(--z-popover);
   max-height: 290px;
   overflow-y: auto;
 }
@@ -394,8 +445,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 9px 12px;
-  border-radius: 7px;
+  min-height: var(--hit);
+  padding: 0 var(--s-3);
+  border-radius: var(--r-1);
   cursor: pointer;
 }
 #suggestions li[aria-selected='true'],
@@ -403,16 +455,16 @@
   background: var(--empty);
 }
 .opt-id {
-  font-weight: 800;
+  font-family: var(--font-num);
+  font-weight: var(--w-strong);
   letter-spacing: 0.03em;
 }
 .opt-tag {
-  font-size: 0.72rem;
-  color: var(--muted);
-  font-weight: 600;
+  font-size: var(--fs-1);
+  color: var(--ink-2);
 }
 .shake {
-  animation: shake 400ms ease;
+  animation: shake 360ms ease;
 }
 @keyframes shake {
   20%,
@@ -425,100 +477,87 @@
   }
 }
 
-/* ============ Resultado ============ */
+/* ---------- Resultado ---------- */
 .result {
   width: 100%;
-  max-width: 400px;
+  max-width: var(--col-max);
   text-align: center;
-  padding: 14px;
-  border-radius: 14px;
+  padding: var(--s-4);
+  border-radius: var(--r-2);
   background: var(--surface);
-  border: 1px solid var(--border);
-  animation: pop 400ms ease both;
+  border: var(--rule) solid var(--ink);
+  animation: pop var(--t-base) var(--ease-out) both;
 }
 .result[hidden] {
   display: none;
 }
 .result p {
-  margin: 4px 0;
+  margin: var(--s-1) 0;
 }
 .result-head {
-  font-weight: 800;
-  font-size: 1.15rem;
+  font-family: var(--font-display);
+  font-weight: var(--w-display);
+  font-size: var(--fs-4);
 }
 .result-route {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin: 8px 0 4px;
+  gap: var(--s-3);
+  margin: var(--s-2) 0 var(--s-1);
   flex-wrap: wrap;
 }
+/* Placa de letrero: el mismo objeto de la tarjeta de la home */
 .route-badge {
-  font-weight: 800;
-  font-size: 1.3rem;
-  padding: 2px 12px;
-  border-radius: 8px;
-  background: var(--green);
-  color: var(--on-color);
+  font-family: var(--font-num);
+  font-weight: var(--w-strong);
+  font-size: var(--fs-6);
+  line-height: 1;
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-2);
+  background: var(--sign-plate);
+  color: var(--on-plate);
 }
 .route-name {
-  font-weight: 600;
+  font-weight: var(--w-strong);
 }
 .od {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--s-2);
   flex-wrap: wrap;
-  font-size: 0.9rem;
+  font-size: var(--fs-2);
 }
 .od-arrow {
-  font-weight: 800;
+  font-weight: var(--w-strong);
 }
-.result-actions,
-.stat-foot {
+.result-actions {
   display: flex;
-  gap: 12px;
+  gap: var(--s-3);
   justify-content: center;
   align-items: center;
-  margin-top: 12px;
+  margin-top: var(--s-3);
   flex-wrap: wrap;
 }
-.countdown-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.countdown {
-  font-family: var(--font-num);
-  font-weight: 700;
-  font-size: 1.35rem;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
-}
 
-
-/* ============ Aviso de micro nueva (sin recargar) ============ */
+/* ---------- Aviso de micro nueva (sin recargar) ---------- */
 .new-day {
-  margin: 0 16px 8px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: var(--yellow);
-  color: var(--on-color);
-  font-weight: 700;
-  font-size: 0.875rem;
+  margin: 0 var(--s-4) var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-2);
+  border: var(--rule) solid var(--ink);
+  background: var(--sign);
+  color: var(--on-sign);
+  font-weight: var(--w-strong);
+  font-size: var(--fs-2);
   text-align: center;
 }
 .new-day[hidden] {
   display: none;
 }
-.new-day a {
-  color: inherit;
-  text-underline-offset: 2px;
-}
 
-/* ============ Barra de respuesta fija en móvil ============
+/* ---------- Barra de respuesta fija en móvil ----------
  * El input siempre visible sin scroll. Con el teclado abierto, --kb (calculado
  * con visualViewport en main.ts) la sube por encima del teclado en iOS; en
  * Android, interactive-widget=resizes-content achica el layout y --kb queda en 0.
@@ -530,13 +569,13 @@
     right: 0;
     bottom: 0;
     max-width: none;
-    z-index: 900;
-    padding: 10px max(16px, calc((100% - 360px) / 2)) calc(10px + env(safe-area-inset-bottom));
+    z-index: var(--z-sticky);
+    padding: var(--s-3) max(var(--s-4), calc((100% - 360px) / 2)) calc(var(--s-3) + env(safe-area-inset-bottom));
     background: var(--bg);
-    border-top: 1px solid var(--line);
+    border-top: var(--rule) solid var(--ink);
     transform: translateY(calc(-1 * var(--kb, 0px)));
   }
   body.has-answer-bar {
-    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+    padding-bottom: calc(76px + env(safe-area-inset-bottom));
   }
 }

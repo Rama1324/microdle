@@ -6,7 +6,7 @@ import { answerForDay, MICRO_EPOCH, microDayIndex, randomAnswer } from './game/d
 import { computeFeedback, zonaLabel } from './game/feedback';
 import { buildShareText } from './game/share';
 import { MapView } from './ui/map';
-import { announceText, renderGrid, ROW_REVEAL_MS } from './ui/grid';
+import { announceText, renderGrid, rowRevealMs } from './ui/grid';
 import { GuessInput, normalizeId } from './ui/input';
 import { loadDaily, loadPractice, loadSavedDaily, loadSettings, microStore, MICRO_STATS, saveSettings, type DailySave, type PracticeSave } from './state';
 import { dateForDay, formatCountdown, msUntilNextDay, puzzleNumber } from '../shared/time';
@@ -18,6 +18,7 @@ import type { ScheduleFile } from '../shared/schedule';
 import { openDialog, renderStats, setupDialogs } from '../shared/ui/dialogs';
 import { announce, startCountdown, toast } from '../shared/ui/toast';
 import { icons, logoSvg } from '../shared/ui/icons';
+import { haptic, HAPTIC } from '../shared/ui/haptics';
 
 // ---------- estado ----------
 const settings = loadSettings();
@@ -151,6 +152,9 @@ function render(opts: { animateRow?: number; animateReveal?: boolean } = {}) {
     );
   }
   $('hint-detail').innerHTML = detail.join('');
+  const openHint = HINTS.find((h) => h.lvl === level);
+  $('map-tag').textContent = finished ? '' : level === 0 ? 'Pista 0 de 5 · Solo la forma' : `Pista ${level} de 5 · ${openHint?.name ?? ''}`;
+  $('map-tag').hidden = finished;
 
   // Grilla
   renderGrid($('grid'), fb, opts.animateRow ?? null);
@@ -167,7 +171,7 @@ function render(opts: { animateRow?: number; animateReveal?: boolean } = {}) {
     const won = status === 'won';
     res.hidden = false;
     res.innerHTML = `
-      <p class="result-head">${won ? pickCheer(fb.length) : 'Esta vez no fue'}</p>
+      <p class="result-head">${won ? pickCheer(fb.length) : 'Mañana sale otra.'}</p>
       <div class="result-route">
         <span class="route-badge">${answer.id}</span>
         <span class="route-name">${answer.nombre.replace(/\s+-\s+/g, ' – ')}</span>
@@ -191,8 +195,9 @@ function render(opts: { animateRow?: number; animateReveal?: boolean } = {}) {
   }
 }
 
+/** Copy corto, sin exclamaciones genéricas */
 function pickCheer(n: number) {
-  return ['¡Increíble! A la primera', '¡Impresionante!', '¡Muy bien!', '¡Bien hecho!', '¡Justo!', '¡Por un pelo!'][n - 1] ?? '¡Bien!';
+  return ['A la primera.', 'En 2. Bien leído.', 'En 3.', 'En 4.', 'En 5. Justo.', 'En la última.'][n - 1] ?? 'Bien.';
 }
 
 // ---------- jugar ----------
@@ -205,12 +210,12 @@ function onGuess(raw: string) {
   const route = byId.get(q);
   if (!route) {
     guessInput.shake();
-    toast('No es un recorrido válido');
+    toast('Ese número no existe. Prueba con otro.');
     return;
   }
   if (cur.guesses.some((g) => normalizeId(g) === q)) {
     guessInput.shake();
-    toast('Ya probaste esa micro');
+    toast('Esa ya la probaste.');
     return;
   }
 
@@ -225,6 +230,7 @@ function onGuess(raw: string) {
   }
   persist();
   guessInput.clear();
+  haptic(HAPTIC.tap);
 
   const fb = computeFeedback(route, cur.answer);
   busy = true;
@@ -242,7 +248,8 @@ function onGuess(raw: string) {
         recordDailyPlayed('micro', dateForDay(MICRO_EPOCH, today));
       }
       render({ animateReveal: true });
-      if (!won) toast(`Era la ${cur.answer.id}`, 2600);
+      if (!won) toast(`Era la ${cur.answer.id}.`, 2600);
+      haptic(won ? HAPTIC.ok : HAPTIC.bad);
       if (mode === 'daily') setTimeout(() => showStats(), 2600);
     } else {
       render();
@@ -251,7 +258,7 @@ function onGuess(raw: string) {
       const name = HINTS.find((h) => h.lvl === lvl)?.name;
       if (name) toast(`Nueva pista: ${name}`);
     }
-  }, ROW_REVEAL_MS + 80);
+  }, rowRevealMs() + 80);
 }
 
 function renderGridOnly(guesses: string[], answer: RouteData, animateRow: number) {
@@ -276,8 +283,8 @@ async function doShare() {
     won: status === 'won',
   });
   const r = await shareResult(text);
-  if (r === 'copied') toast('Resultado copiado al portapapeles');
-  else if (r === 'failed') toast('No se pudo copiar 😕');
+  if (r === 'copied') toast('Copiado. Pégalo donde quieras.');
+  else if (r === 'failed') toast('No se pudo copiar.');
 }
 
 function showStats() {
@@ -299,7 +306,7 @@ function showStats() {
       highlight: daily.status === 'won' ? daily.guesses.length - 1 : null,
       aria: (n, l) => `${n} ${n === 1 ? 'victoria' : 'victorias'} en ${l} ${l === '1' ? 'intento' : 'intentos'}`,
     },
-    footer: dailyDone ? { countdown: true, share: true } : { note: 'Termina la micro de hoy para compartir tu resultado.' },
+    footer: dailyDone ? { countdown: true, share: true, countdownLabel: 'Próxima micro en' } : { note: 'Termina la micro de hoy para compartir tu resultado.' },
   });
   body.querySelector('[data-share]')?.addEventListener('click', async () => {
     const text = buildShareText({
@@ -309,8 +316,8 @@ function showStats() {
       won: daily.status === 'won',
     });
     const r = await shareResult(text);
-    if (r === 'copied') toast('Resultado copiado al portapapeles');
-    else if (r === 'failed') toast('No se pudo copiar 😕');
+    if (r === 'copied') toast('Copiado. Pégalo donde quieras.');
+    else if (r === 'failed') toast('No se pudo copiar.');
   });
   tick();
   openDialog('dlg-stats');

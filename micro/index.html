@@ -38,7 +38,7 @@
 
     <!-- theme-script -->
   </head>
-  <body class="has-answer-bar">
+  <body class="has-answer-bar" data-game="micro">
     <a class="skip" href="#guess-input">Saltar al campo de respuesta</a>
 
     <header class="top">
@@ -46,7 +46,7 @@
         <a class="icon-btn" href="/" id="btn-home" aria-label="Volver a %SITE_NAME%" title="Todos los juegos"></a>
         <button type="button" class="icon-btn" id="btn-help" aria-label="Cómo jugar" title="Cómo jugar"></button>
       </div>
-      <h1 class="brand"><span class="brand-logo" id="brand-logo"></span>MICRODLE</h1>
+      <h1 class="brand"><span class="brand-logo" id="brand-logo"></span>Microdle</h1>
       <div class="top-side right">
         <button type="button" class="icon-btn" id="btn-stats" aria-label="Estadísticas" title="Estadísticas"></button>
         <button type="button" class="icon-btn" id="btn-settings" aria-label="Ajustes" title="Ajustes"></button>
@@ -66,6 +66,7 @@
       <section class="map-wrap" aria-label="Mapa del recorrido">
         <div id="map" role="img" aria-label="Trazado del recorrido misterioso"></div>
         <div class="map-loading" id="map-loading">Cargando recorridos…</div>
+        <span class="map-tag label" id="map-tag" aria-hidden="true"></span>
       </section>
 
       <section class="panel">
@@ -86,7 +87,7 @@
               autocorrect="off"
               spellcheck="false"
               maxlength="6"
-              placeholder="Ej: 506, B27, I09"
+              placeholder="506, B27, I09…"
               role="combobox"
               aria-autocomplete="list"
               aria-expanded="false"
@@ -94,7 +95,7 @@
             />
             <ul id="suggestions" role="listbox" aria-label="Recorridos" hidden></ul>
           </div>
-          <button type="submit" class="btn btn-primary">Adivinar</button>
+          <button type="submit" class="btn btn-primary">Probar</button>
         </form>
 
         <div id="result" class="result" hidden aria-live="polite"></div>
@@ -114,8 +115,8 @@
       <div class="dlg">
         <button type="button" class="dlg-close icon-btn" aria-label="Cerrar"></button>
         <h2 id="help-title">Cómo jugar</h2>
-        <p>Adivina el <strong>recorrido de micro</strong> de Santiago a partir de su trazado. Tienes <strong>6 intentos</strong>.</p>
-        <p>Escribe un recorrido (ej: <kbd>506</kbd>, <kbd>B27</kbd>, <kbd>I09</kbd>) y elígelo de la lista.</p>
+        <p>¿Qué micro hace este recorrido? Tienes <strong>6 intentos</strong>.</p>
+        <p>Escribe el número (<kbd>506</kbd>, <kbd>B27</kbd>, <kbd>I09</kbd>) y elígelo de la lista.</p>
 
         <h3 class="dlg-sub">Cada fallo abre una pista</h3>
         <ol class="help-steps">
@@ -142,8 +143,8 @@
           <li><strong>Zona:</strong> si comparten letra (alimentadores B, C, D…) o centena (troncales 1xx, 2xx…).</li>
         </ul>
         <p class="muted">Los servicios cortos, expresos, nocturnos y variantes (506e, B12c…) valen como intento, pero nunca son la respuesta.</p>
-        <p class="muted">Hay una micro nueva cada día a medianoche (hora de Chile). En <strong>Práctica</strong> puedes jugar sin límite sin afectar tus rachas.</p>
-        <button type="button" class="btn btn-primary btn-block" data-close>¡A jugar!</button>
+        <p class="muted">Sale una micro nueva cada día a medianoche, hora de Chile. En <strong>Práctica</strong> juegas sin límite y sin tocar tus rachas.</p>
+        <button type="button" class="btn btn-primary btn-block" data-close>Jugar</button>
       </div>
     </dialog>
 

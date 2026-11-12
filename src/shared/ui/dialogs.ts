@@ -32,7 +32,7 @@ export interface StatsView {
     aria: (value: number, label: string) => string;
   };
   /** Bloque final: cuenta regresiva + compartir, o una nota */
-  footer: { countdown: boolean; share: boolean } | { note: string };
+  footer: { countdown: boolean; share: boolean; countdownLabel?: string } | { note: string };
   extra?: string;
 }
 
@@ -41,7 +41,7 @@ export function renderStats(el: HTMLElement, v: StatsView) {
   const d = v.dist;
   const max = d ? Math.max(1, ...d.values) : 1;
   el.innerHTML = `
-    <div class="stat-nums" style="grid-template-columns:repeat(${v.numbers.length},1fr)">
+    <div class="stat-nums" style="grid-template-columns:repeat(${v.numbers.length},minmax(0,1fr))">
       ${v.numbers.map(([n, l]) => `<div class="stat"><span class="stat-n">${n}</span><span class="stat-l">${l}</span></div>`).join('')}
     </div>
     ${v.extra ?? ''}
@@ -63,7 +63,7 @@ export function renderStats(el: HTMLElement, v: StatsView) {
       'note' in v.footer
         ? `<p class="muted center">${v.footer.note}</p>`
         : `<div class="stat-foot">
-        ${v.footer.countdown ? `<div class="countdown-box"><span class="stat-l">Próximo juego en</span><span class="countdown" data-countdown>--:--:--</span></div>` : ''}
+        ${v.footer.countdown ? `<div class="countdown-box"><span class="stat-l">${v.footer.countdownLabel ?? 'Próximo juego en'}</span><span class="countdown" data-countdown>--:--:--</span></div>` : ''}
         ${v.footer.share ? `<button type="button" class="btn btn-primary" data-share>${icons.share}<span>Compartir</span></button>` : ''}
       </div>`
     }
