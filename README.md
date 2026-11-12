@@ -98,6 +98,10 @@ Los ítems viven en `data/caro.json`:
 - Cada día del schedule guarda su precio congelado ("id@precio"): actualizar un precio cambia los días futuros, nunca los publicados.
 - No des de baja (`verificado: false`) un ítem que aparece en un día congelado: `prebuild` lo detecta y falla.
 
+**Fotos de fondo:** cada ítem tiene `"imagen": "<concepto>"` (por ejemplo `"palta"`). Las fotos son de Wikimedia Commons, solo con licencias libres (CC0, dominio público, CC BY, CC BY-SA). Están en `public/caro/img/<concepto>.webp` y su autor y licencia en `data/caro-images.json`.
+- Para agregar o cambiar una foto, edita `CONCEPTS` en `scripts/fetch-caro-images.ts` (con una búsqueda o un `File:` exacto de Commons) y corre `npx tsx scripts/fetch-caro-images.ts`. Revisa la foto: la búsqueda a veces trae algo que no corresponde.
+- El validador falla si un ítem apunta a una foto sin archivo o sin crédito. Los créditos se muestran al pie de `/caro/`.
+
 **Íconos por categoría:** son emoji provisorios, definidos en un solo mapa (`src/caro/icons.ts`) para reemplazarlos después por SVG propios.
 
 ## Despliegue (Vercel)

@@ -22,11 +22,16 @@ body[data-game='caro'] {
   align-items: center;
   justify-content: space-between;
   gap: var(--s-3);
-  padding: var(--s-2) var(--s-4);
+  height: var(--gamebar-h);
+  padding: 0 var(--s-4);
   border-bottom: var(--hair) solid var(--line-soft);
   max-width: var(--page-max);
   width: 100%;
   margin: 0 auto;
+}
+body[data-game='caro'] {
+  --gamebar-h: 52px;
+  --controls-h: 132px;
 }
 .progress {
   display: flex;
@@ -57,45 +62,98 @@ body[data-game='caro'] {
   background: var(--ink);
 }
 
-/* ---------- Duelo ---------- */
+/* ---------- Duelo: dos mitades gigantes con foto; se toca la más cara ---------- */
 .caro {
   flex: 1;
   width: 100%;
   max-width: var(--page-max);
   margin: 0 auto;
-  padding: var(--s-3) var(--s-4) var(--s-4);
+  padding: 0 0 var(--s-3);
   display: flex;
   flex-direction: column;
-  gap: var(--s-3);
 }
 .duel {
   position: relative;
   display: grid;
   grid-template-rows: 1fr 1fr;
-  gap: var(--s-3);
+  /* Llena la pantalla bajo la cabecera, dejando la franja de la frase */
+  height: calc(100svh - var(--header-h) - var(--gamebar-h) - var(--controls-h));
+  min-height: 380px;
   outline: none;
+  overflow: hidden;
 }
 .side {
+  /* Texto siempre claro sobre la foto oscurecida, en ambos temas */
+  --on-photo: #fff;
+  --on-photo-2: rgba(255, 255, 255, 0.88);
   position: relative;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: var(--s-1);
-  min-height: 150px;
+  align-items: flex-end;
+  width: 100%;
+  min-height: 0;
+  margin: 0;
   padding: var(--s-4);
-  border: var(--rule) solid var(--ink);
-  border-radius: var(--r-2);
-  background: var(--surface);
-  color: var(--ink);
-  transition:
-    background var(--t-base),
-    color var(--t-base);
+  padding-right: calc(52px + var(--s-6));
+  border: 0;
+  border-radius: 0;
+  font: inherit;
+  text-align: left;
+  color: var(--on-photo);
+  background-color: var(--sign-plate);
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+  overflow: hidden;
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
 }
-.side-a {
-  background: var(--bg);
+/* Velo: asegura contraste del texto blanco aunque la foto sea muy clara */
+.side::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.62) 55%, rgba(0, 0, 0, 0.45) 100%);
+  transition: opacity var(--t-base);
+}
+/* Marco: foco y resultado */
+.side::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 0 solid transparent;
+  pointer-events: none;
+}
+.side-b {
+  border-top: var(--rule) solid var(--ink);
+}
+@media (hover: hover) {
+  .side:not(:disabled):hover::before {
+    opacity: 0.8;
+  }
+}
+.side:focus-visible {
+  outline: none;
+}
+.side:focus-visible::after {
+  border-width: 4px;
+  border-color: var(--sign);
+}
+.side:not(:disabled):active {
+  filter: brightness(1.15);
+}
+.side:disabled {
+  cursor: default;
+}
+.side-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  min-width: 0;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 }
 .cat {
-  color: var(--ink-2);
+  color: var(--on-photo-2);
   display: inline-flex;
   align-items: center;
   gap: var(--s-1);
@@ -105,62 +163,78 @@ body[data-game='caro'] {
   letter-spacing: 0;
 }
 .name {
-  margin: 0;
+  display: block;
   font-family: var(--font-display);
   font-weight: var(--w-display);
-  font-size: var(--fs-4);
+  font-size: var(--fs-5);
   line-height: var(--lh-tight);
+  text-wrap: balance;
 }
 .price {
-  margin: 0;
+  display: block;
   font-size: var(--fs-7);
   font-weight: var(--w-strong);
   line-height: 1;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
+  color: var(--on-plate);
 }
 .price.hidden-price {
-  color: var(--ink-2);
+  color: var(--on-photo);
 }
 .src {
-  margin: 0;
+  display: block;
   font-size: var(--fs-1);
-  color: var(--ink-2);
+  color: var(--on-photo-2);
   min-height: 1.5em;
 }
 .src a {
   color: inherit;
 }
+/* Sello de resultado sobre la mitad que tocaste */
 .verdict {
-  align-self: flex-start;
-  margin: var(--s-1) 0;
-  padding: var(--s-1) var(--s-2);
+  position: absolute;
+  top: var(--s-4);
+  left: var(--s-4);
+  padding: var(--s-1) var(--s-3);
   border: var(--rule) solid var(--on-feedback);
   border-radius: var(--r-1);
   color: var(--on-feedback);
+  font-size: var(--fs-2);
+  animation: stamp var(--t-base) var(--ease-out) both;
 }
-.side-b.is-ok {
+.side.is-ok::after {
+  border-width: 6px;
+  border-color: var(--ok);
+}
+.side.is-bad::after {
+  border-width: 6px;
+  border-color: var(--bad);
+}
+.side.is-ok .verdict {
   background: var(--ok);
-  color: var(--on-feedback);
 }
-.side-b.is-bad {
+.side.is-bad .verdict {
   background: var(--bad);
-  color: var(--on-feedback);
 }
-.side-b.is-ok .cat,
-.side-b.is-ok .src,
-.side-b.is-bad .cat,
-.side-b.is-bad .src {
-  color: var(--on-feedback);
+@keyframes stamp {
+  from {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
 }
 .vs {
   position: absolute;
-  right: var(--s-5);
+  right: var(--s-4);
   top: 50%;
   transform: translateY(-50%);
   z-index: 2;
-  width: var(--hit);
-  height: var(--hit);
+  width: 52px;
+  height: 52px;
   display: grid;
   place-items: center;
   border-radius: var(--r-round);
@@ -170,9 +244,10 @@ body[data-game='caro'] {
   font-family: var(--font-num);
   font-weight: var(--w-strong);
   font-size: var(--fs-2);
+  pointer-events: none;
 }
 
-/* Transición al avanzar: B sube a la posición de A y entra un B nuevo */
+/* Transición al avanzar: B pasa a la posición de A y entra un B nuevo */
 .duel.enter .side-a {
   animation: from-b var(--t-slide) var(--ease-out) both;
 }
@@ -181,7 +256,7 @@ body[data-game='caro'] {
 }
 @keyframes from-b {
   from {
-    transform: translateY(calc(100% + var(--s-3)));
+    transform: translateY(100%);
   }
   to {
     transform: none;
@@ -198,34 +273,34 @@ body[data-game='caro'] {
   }
 }
 
-/* ---------- Controles ---------- */
+/* ---------- Franja bajo el duelo: instrucción, frase y "Siguiente" ---------- */
 .controls {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: var(--s-2);
+  min-height: var(--controls-h);
+  padding: var(--s-2) var(--s-4);
 }
 .phrase {
   margin: 0;
-  min-height: 3em;
   font-size: var(--fs-2);
   font-weight: var(--w-strong);
   text-align: center;
 }
-.answer-btns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--s-2);
+.phrase .ask {
+  font-family: var(--font-display);
+  font-weight: var(--w-display);
+  font-size: var(--fs-4);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 .btn-big {
-  min-height: 56px;
+  min-height: 52px;
   font-family: var(--font-display);
   font-weight: var(--w-display);
   font-size: var(--fs-3);
   letter-spacing: 0.02em;
-}
-.btn-higher {
-  background: var(--caro);
-  color: var(--on-feedback);
 }
 .btn-next {
   width: 100%;
@@ -236,6 +311,7 @@ body[data-game='caro'] {
 /* ---------- Fin: boleta ---------- */
 .end,
 .soon {
+  margin: var(--s-3) var(--s-4) 0;
   background: var(--surface);
   border: var(--rule) solid var(--ink);
   border-radius: var(--r-2);
@@ -315,6 +391,24 @@ body[data-game='caro'] {
   font-weight: var(--w-display);
 }
 
+/* ---------- Créditos de fotos ---------- */
+.credits {
+  margin: var(--s-2) auto 0;
+  max-width: var(--measure);
+  text-align: left;
+}
+.credits summary {
+  cursor: pointer;
+  min-height: var(--hit);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.credits ul {
+  margin: 0;
+  padding-left: var(--s-4);
+}
+
 /* ---------- Escritorio: lado a lado ---------- */
 @media (min-width: 800px) {
   .caro-brand {
@@ -323,18 +417,31 @@ body[data-game='caro'] {
   .duel {
     grid-template-rows: none;
     grid-template-columns: 1fr 1fr;
-    gap: var(--s-5);
+    min-height: 460px;
   }
   .side {
-    min-height: 280px;
-    padding: var(--s-5);
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--s-6);
+  }
+  .side-body {
+    align-items: center;
+    max-width: 26ch;
   }
   .name {
-    font-size: var(--fs-5);
+    font-size: var(--fs-6);
+  }
+  .side-b {
+    border-top: 0;
+    border-left: var(--rule) solid var(--ink);
   }
   .vs {
     right: auto;
     left: 50%;
+    width: 64px;
+    height: 64px;
+    font-size: var(--fs-3);
     transform: translate(-50%, -50%);
   }
   .controls {
@@ -346,11 +453,11 @@ body[data-game='caro'] {
   .soon {
     max-width: 560px;
     width: 100%;
-    margin: 0 auto;
+    margin: var(--s-4) auto 0;
   }
   @keyframes from-b {
     from {
-      transform: translateX(calc(100% + var(--s-5)));
+      transform: translateX(100%);
     }
     to {
       transform: none;
@@ -358,16 +465,16 @@ body[data-game='caro'] {
   }
 }
 
-/* Pantallas bajas: compactar para que los botones queden a la vista */
+/* Pantallas bajas: el texto se achica para que todo quepa */
 @media (max-height: 700px) and (max-width: 799px) {
   .side {
-    min-height: 120px;
     padding: var(--s-3);
+    padding-right: calc(52px + var(--s-5));
+  }
+  .name {
+    font-size: var(--fs-4);
   }
   .price {
     font-size: var(--fs-6);
-  }
-  .phrase {
-    min-height: 2.5em;
   }
 }

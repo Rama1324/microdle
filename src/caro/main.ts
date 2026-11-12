@@ -87,23 +87,46 @@ function currentPair(): { a: PricedRef; b: PricedRef } | null {
   return inf && !inf.over ? { a: inf.a, b: inf.b } : null;
 }
 
-function sourceHtml(it: CaroItem): string {
-  return `Fuente: <a href="${it.fuenteUrl}" target="_blank" rel="noopener noreferrer">${it.fuente}</a> · ${fechaCorta(it.fechaPrecio)}`;
+/** Nombre del ítem con link a la página donde se vio el precio (en la boleta final). */
+function srcLink(it: CaroItem): string {
+  return `<a href="${it.fuenteUrl}" target="_blank" rel="noopener noreferrer" title="${it.fuente} · ${fechaCorta(it.fechaPrecio)}">${it.item}</a>`;
+}
+
+const imageUrl = (it: CaroItem) => (it.imagen ? `/caro/img/${it.imagen}.webp` : '');
+
+/** Precarga la foto de un ítem que viene después, para que no aparezca en blanco. */
+function preload(r: PricedRef | undefined) {
+  const it = r && byId.get(r.id);
+  const url = it && imageUrl(it);
+  if (url) new Image().src = url;
+}
+
+/** La fuente es un enlace: dentro de un botón no se puede, así que va como texto y el link en la boleta y el pie. */
+function sourceText(it: CaroItem): string {
+  return `Fuente: ${it.fuente} · ${fechaCorta(it.fechaPrecio)}`;
 }
 
 function fillSide(side: 'a' | 'b', it: CaroItem, revealPrice: boolean) {
+  const el = $(`side-${side}`);
+  const url = imageUrl(it);
+  el.style.backgroundImage = url ? `url("${url}")` : '';
+  el.classList.remove('is-ok', 'is-bad');
+  $(`verdict-${side}`).hidden = true;
   $(`cat-${side}`).innerHTML = `<span class="ico" aria-hidden="true">${categoryIcon(it.categoria)}</span>${it.categoria}`;
   $(`name-${side}`).textContent = it.item;
   const price = $(`price-${side}`);
   price.textContent = revealPrice ? formatCLP(it.precio) : '$ ???';
   price.classList.toggle('hidden-price', !revealPrice);
-  price.setAttribute('aria-label', revealPrice ? `Precio: ${formatCLP(it.precio)}` : 'Precio oculto');
-  $(`src-${side}`).innerHTML = revealPrice ? sourceHtml(it) : '';
+  $(`src-${side}`).textContent = revealPrice ? sourceText(it) : '';
+  el.setAttribute(
+    'aria-label',
+    `${it.item}. ${revealPrice ? `Cuesta ${formatCLP(it.precio)}` : 'Precio oculto'}. Tocar si es el más caro.`,
+  );
 }
 
 function setButtons(enabled: boolean) {
-  ($('btn-higher') as HTMLButtonElement).disabled = !enabled;
-  ($('btn-lower') as HTMLButtonElement).disabled = !enabled;
+  ($('side-a') as HTMLButtonElement).disabled = !enabled;
+  ($('side-b') as HTMLButtonElement).disabled = !enabled;
 }
 
 // ---------- render ----------
@@ -146,14 +169,11 @@ function render(opts: { enter?: boolean } = {}) {
   const b = item(pair.b);
   fillSide('a', a, true);
   fillSide('b', b, false);
-  $('side-b').classList.remove('is-ok', 'is-bad');
-  $('verdict').hidden = true;
-  $('phrase').textContent = `¿${b.item} sale más caro o más barato?`;
-  $('answer-btns').hidden = false;
+  $('phrase').innerHTML = '<span class="ask">¿Cuál sale más caro?</span>';
   $('btn-next').hidden = true;
-  $('btn-higher').setAttribute('aria-label', `Más caro que ${a.item}`);
-  $('btn-lower').setAttribute('aria-label', `Más barato que ${a.item}`);
   setButtons(!busy);
+  // La siguiente foto (la que entra después) ya queda descargada
+  if (mode === 'daily' && chain) preload(chain[daily.results.length + 2]);
   const duel = $('duel');
   duel.classList.remove('enter');
   if (opts.enter && !reducedMotion()) {
@@ -172,7 +192,7 @@ function renderEnd() {
       .map((ok, i) => {
         const a = item(chain![i]);
         const b = item(chain![i + 1]);
-        return `<li><span class="mark ${ok ? 'ok' : 'bad'}" aria-label="${ok ? 'Acierto' : 'Error'}">${ok ? '✓' : '✗'}</span><span class="vs-txt">${b.item} <span class="muted">vs</span> ${a.item}</span><span class="amt">${formatCLP(b.precio)}</span></li>`;
+        return `<li><span class="mark ${ok ? 'ok' : 'bad'}" aria-label="${ok ? 'Acierto' : 'Error'}">${ok ? '✓' : '✗'}</span><span class="vs-txt">${srcLink(b)} <span class="muted">vs</span> ${srcLink(a)}</span><span class="amt">${formatCLP(b.precio)}</span></li>`;
       })
       .join('');
     end.innerHTML = `
@@ -198,7 +218,7 @@ function renderEnd() {
     $('btn-again').addEventListener('click', () => {
       startInfinite();
       render({ enter: true });
-      ($('btn-higher') as HTMLButtonElement).focus();
+      ($('side-a') as HTMLButtonElement).focus({ preventScroll: true });
     });
   }
 }
@@ -251,10 +271,12 @@ async function answer(guess: Guess) {
   }
 
   await countUp($('price-b'), b.precio);
-  $('price-b').setAttribute('aria-label', `Precio: ${formatCLP(b.precio)}`);
-  $('src-b').innerHTML = sourceHtml(b);
-  $('side-b').classList.add(ok ? 'is-ok' : 'is-bad');
-  const verdict = $('verdict');
+  $('src-b').textContent = sourceText(b);
+  $('side-b').setAttribute('aria-label', `${b.item}. Cuesta ${formatCLP(b.precio)}.`);
+  // Sello sobre la mitad que tocaste
+  const picked = guess === 'higher' ? 'b' : 'a';
+  $(`side-${picked}`).classList.add(ok ? 'is-ok' : 'is-bad');
+  const verdict = $(`verdict-${picked}`);
   verdict.hidden = false;
   verdict.textContent = ok ? '✓ Bien' : '✗ No';
   $('phrase').textContent = absurdPhrase(a, b);
@@ -288,7 +310,6 @@ async function answer(guess: Guess) {
 }
 
 function showNext(label: string) {
-  $('answer-btns').hidden = true;
   const next = $('btn-next');
   next.innerHTML = `${label} <span aria-hidden="true">→</span>`;
   next.hidden = false;
@@ -307,8 +328,11 @@ function advance() {
       inf = { ...inf, a: inf.b, b: nb };
     }
   }
+  const wasKeyboard = document.activeElement?.matches(':focus-visible');
   render({ enter: true });
-  if (currentPair()) ($('btn-higher') as HTMLButtonElement).focus({ preventScroll: true });
+  if (currentPair()) {
+    if (wasKeyboard) ($('side-a') as HTMLButtonElement).focus({ preventScroll: true });
+  }
   else $('end').focus?.();
 }
 
@@ -387,8 +411,9 @@ const tick = startCountdown(
 );
 
 // ---------- eventos ----------
-$('btn-higher').addEventListener('click', () => answer('higher'));
-$('btn-lower').addEventListener('click', () => answer('lower'));
+// Tocar A = "A es más caro" (B más barato); tocar B = "B es más caro"
+$('side-a').addEventListener('click', () => answer('lower'));
+$('side-b').addEventListener('click', () => answer('higher'));
 $('btn-next').addEventListener('click', () => {
   $('btn-next').hidden = true;
   advance();
@@ -404,14 +429,33 @@ $('tab-daily').addEventListener('click', () => setMode('daily'));
 $('tab-infinite').addEventListener('click', () => setMode('infinite'));
 document.addEventListener('keydown', (e) => {
   if (document.querySelector('dialog[open]') || e.altKey || e.ctrlKey || e.metaKey) return;
-  if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    answer('higher');
-  } else if (e.key === 'ArrowDown') {
+  // 1 / ↑ / ← = el primero (arriba o izquierda); 2 / ↓ / → = el segundo
+  if (['1', 'ArrowUp', 'ArrowLeft'].includes(e.key)) {
     e.preventDefault();
     answer('lower');
+  } else if (['2', 'ArrowDown', 'ArrowRight'].includes(e.key)) {
+    e.preventDefault();
+    answer('higher');
+  } else if ((e.key === 'Enter' || e.key === ' ') && !$('btn-next').hidden && document.activeElement === document.body) {
+    e.preventDefault();
+    $('btn-next').click();
   }
 });
+
+/** Pie: crédito de cada foto (autor y licencia, con link a Commons). */
+function renderCredits(data: CaroItemsFile) {
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+  const usedBy = new Map<string, string[]>();
+  for (const it of data.items) if (it.imagen) usedBy.set(it.imagen, [...(usedBy.get(it.imagen) ?? []), it.item]);
+  const rows = Object.entries(data.creditos ?? {})
+    .map(([k, c]) => {
+      const what = usedBy.get(k)?.[0] ?? k;
+      return `<li>${esc(what)}: <a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(c.autor)}</a>, ${esc(c.licencia)}</li>`;
+    })
+    .join('');
+  $('credits-list').innerHTML = rows;
+  $('creditos').hidden = !rows;
+}
 
 // ---------- arranque ----------
 async function init() {
@@ -426,6 +470,7 @@ async function init() {
     byId = new Map(data.items.map((i) => [i.id, i]));
     pool = pricedPool(data.items);
     $('data-version').textContent = `${data.items.length} precios verificados. Actualizado el ${fechaCorta(data.generado)}.`;
+    renderCredits(data);
 
     const entry = sched ? entryForDay(sched, today, CARO_SALT) : null;
     const refs = entry?.map(decodeRef).filter((r) => byId.has(r.id)) ?? [];

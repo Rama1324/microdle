@@ -9,12 +9,22 @@ export interface CaroItem {
   fuenteUrl: string;
   /** YYYY-MM-DD */
   fechaPrecio: string;
+  /** Concepto de la foto de fondo (public/caro/img/<imagen>.webp) o '' */
   imagen: string;
+}
+
+export interface ImageCredit {
+  autor: string;
+  licencia: string;
+  /** Página del archivo en Wikimedia Commons */
+  url: string;
 }
 
 export interface CaroItemsFile {
   generado: string;
   items: CaroItem[];
+  /** concepto de imagen → crédito de la foto (public/caro/img/<concepto>.webp) */
+  creditos?: Record<string, ImageCredit>;
 }
 
 /** Ítem como se escribe en data/caro.json (fuente de verdad, incluye no verificados). */
